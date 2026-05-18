@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   ChevronRight,
@@ -7,16 +7,16 @@ import {
   LogOut,
   MapPin,
   Settings,
-  Settings as Gear,
   User as UserIcon,
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "Profile — Selecto" },
-      { name: "description", content: "Manage your Selecto account, addresses, and preferences." },
+      { name: "description", content: "Manage your Selecto account." },
     ],
   }),
   component: ProfilePage,
@@ -32,33 +32,39 @@ const rows = [
 ];
 
 function ProfilePage() {
+  const { user, roles, signOut, isAdmin, isRestaurant } = useAuth();
+  const nav = useNavigate();
+  const name = (user?.user_metadata?.display_name as string) || user?.email?.split("@")[0] || "Guest";
+  const roleLabel = isAdmin ? "Admin" : isRestaurant ? "Restaurant" : roles.length ? "Customer" : "Guest";
+
   return (
     <div className="phone-frame flex flex-col">
       <header className="bg-gradient-to-br from-primary to-primary-glow px-5 pb-12 pt-6 text-primary-foreground">
-        <div className="flex items-center justify-between">
-          <button className="grid size-9 place-items-center rounded-full bg-white/15" aria-label="Back">
-            <ChevronRight className="size-4 rotate-180" />
-          </button>
-          <button className="grid size-9 place-items-center rounded-full bg-white/15" aria-label="Settings">
-            <Gear className="size-4" />
-          </button>
-        </div>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="grid size-16 place-items-center rounded-full bg-white/20 text-2xl font-extrabold">
-            S
+        <div className="mt-2 flex items-center gap-4">
+          <div className="grid size-16 place-items-center rounded-full bg-white/20 text-2xl font-extrabold uppercase">
+            {name.slice(0, 1)}
           </div>
-          <div>
-            <p className="text-xs opacity-80">Welcome back,</p>
-            <h1 className="font-display text-xl font-extrabold">Sarah Johnson</h1>
-            <p className="text-xs opacity-80">sarah.johnson@email.com</p>
+          <div className="min-w-0">
+            <p className="text-xs opacity-80">Welcome{user ? " back," : ","}</p>
+            <h1 className="font-display text-xl font-extrabold truncate">{name}</h1>
+            <p className="truncate text-xs opacity-80">{user?.email ?? "Browsing as guest"}</p>
             <span className="mt-1 inline-block rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-bold text-accent-foreground">
-              Gold Member
+              {roleLabel}
             </span>
           </div>
         </div>
       </header>
 
       <main className="-mt-6 flex-1 space-y-2 px-4">
+        {!user && (
+          <Link
+            to="/auth"
+            className="block rounded-2xl bg-primary px-4 py-3 text-center text-sm font-bold text-primary-foreground shadow-card"
+          >
+            Sign in or create account
+          </Link>
+        )}
+
         <div className="rounded-2xl bg-card shadow-card">
           {rows.map((r, i) => (
             <button
@@ -76,16 +82,26 @@ function ProfilePage() {
           ))}
         </div>
 
-        <Link
-          to="/dashboard"
-          className="block rounded-2xl border border-border bg-card px-4 py-3 text-center text-sm font-semibold text-primary shadow-card"
-        >
-          Switch to Restaurant / Admin
-        </Link>
+        {(isRestaurant || isAdmin) && (
+          <Link
+            to="/dashboard"
+            className="block rounded-2xl border border-border bg-card px-4 py-3 text-center text-sm font-semibold text-primary shadow-card"
+          >
+            Open {isAdmin ? "Admin" : "Restaurant"} Dashboard
+          </Link>
+        )}
 
-        <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-bold text-discount">
-          <LogOut className="size-4" /> Log Out
-        </button>
+        {user && (
+          <button
+            onClick={async () => {
+              await signOut();
+              nav({ to: "/" });
+            }}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-bold text-discount"
+          >
+            <LogOut className="size-4" /> Log Out
+          </button>
+        )}
       </main>
 
       <div className="mt-6">
