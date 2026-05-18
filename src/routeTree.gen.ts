@@ -9,38 +9,266 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as OffersRouteImport } from './routes/offers'
+import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as OfferIdRouteImport } from './routes/offer.$id'
+import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
+import { Route as DashboardOffersIndexRouteImport } from './routes/dashboard.offers.index'
+import { Route as DashboardOffersNewRouteImport } from './routes/dashboard.offers.new'
+import { Route as DashboardAdminRestaurantsRouteImport } from './routes/dashboard.admin.restaurants'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffersRoute = OffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesRoute = FavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const OfferIdRoute = OfferIdRouteImport.update({
+  id: '/offer/$id',
+  path: '/offer/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardOffersIndexRoute = DashboardOffersIndexRouteImport.update({
+  id: '/offers/',
+  path: '/offers/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardOffersNewRoute = DashboardOffersNewRouteImport.update({
+  id: '/offers/new',
+  path: '/offers/new',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminRestaurantsRoute =
+  DashboardAdminRestaurantsRouteImport.update({
+    id: '/restaurants',
+    path: '/restaurants',
+    getParentRoute: () => DashboardAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
+  '/offers': typeof OffersRoute
+  '/orders': typeof OrdersRoute
+  '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/offer/$id': typeof OfferIdRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
+  '/dashboard/offers/new': typeof DashboardOffersNewRoute
+  '/dashboard/offers/': typeof DashboardOffersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
+  '/offers': typeof OffersRoute
+  '/orders': typeof OrdersRoute
+  '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/offer/$id': typeof OfferIdRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
+  '/dashboard/offers/new': typeof DashboardOffersNewRoute
+  '/dashboard/offers': typeof DashboardOffersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
+  '/offers': typeof OffersRoute
+  '/orders': typeof OrdersRoute
+  '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/offer/$id': typeof OfferIdRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
+  '/dashboard/offers/new': typeof DashboardOffersNewRoute
+  '/dashboard/offers/': typeof DashboardOffersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/explore'
+    | '/favorites'
+    | '/offers'
+    | '/orders'
+    | '/profile'
+    | '/sitemap.xml'
+    | '/dashboard/admin'
+    | '/dashboard/analytics'
+    | '/offer/$id'
+    | '/dashboard/'
+    | '/dashboard/admin/restaurants'
+    | '/dashboard/offers/new'
+    | '/dashboard/offers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/explore'
+    | '/favorites'
+    | '/offers'
+    | '/orders'
+    | '/profile'
+    | '/sitemap.xml'
+    | '/dashboard/admin'
+    | '/dashboard/analytics'
+    | '/offer/$id'
+    | '/dashboard'
+    | '/dashboard/admin/restaurants'
+    | '/dashboard/offers/new'
+    | '/dashboard/offers'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/explore'
+    | '/favorites'
+    | '/offers'
+    | '/orders'
+    | '/profile'
+    | '/sitemap.xml'
+    | '/dashboard/admin'
+    | '/dashboard/analytics'
+    | '/offer/$id'
+    | '/dashboard/'
+    | '/dashboard/admin/restaurants'
+    | '/dashboard/offers/new'
+    | '/dashboard/offers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
+  ExploreRoute: typeof ExploreRoute
+  FavoritesRoute: typeof FavoritesRoute
+  OffersRoute: typeof OffersRoute
+  OrdersRoute: typeof OrdersRoute
+  ProfileRoute: typeof ProfileRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  OfferIdRoute: typeof OfferIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offers': {
+      id: '/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof OffersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites': {
+      id: '/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +276,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/offer/$id': {
+      id: '/offer/$id'
+      path: '/offer/$id'
+      fullPath: '/offer/$id'
+      preLoaderRoute: typeof OfferIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/analytics': {
+      id: '/dashboard/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof DashboardAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/offers/': {
+      id: '/dashboard/offers/'
+      path: '/offers'
+      fullPath: '/dashboard/offers/'
+      preLoaderRoute: typeof DashboardOffersIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/offers/new': {
+      id: '/dashboard/offers/new'
+      path: '/offers/new'
+      fullPath: '/dashboard/offers/new'
+      preLoaderRoute: typeof DashboardOffersNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admin/restaurants': {
+      id: '/dashboard/admin/restaurants'
+      path: '/restaurants'
+      fullPath: '/dashboard/admin/restaurants'
+      preLoaderRoute: typeof DashboardAdminRestaurantsRouteImport
+      parentRoute: typeof DashboardAdminRoute
+    }
   }
 }
 
+interface DashboardAdminRouteChildren {
+  DashboardAdminRestaurantsRoute: typeof DashboardAdminRestaurantsRoute
+}
+
+const DashboardAdminRouteChildren: DashboardAdminRouteChildren = {
+  DashboardAdminRestaurantsRoute: DashboardAdminRestaurantsRoute,
+}
+
+const DashboardAdminRouteWithChildren = DashboardAdminRoute._addFileChildren(
+  DashboardAdminRouteChildren,
+)
+
+interface DashboardRouteChildren {
+  DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
+  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardOffersNewRoute: typeof DashboardOffersNewRoute
+  DashboardOffersIndexRoute: typeof DashboardOffersIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAdminRoute: DashboardAdminRouteWithChildren,
+  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardOffersNewRoute: DashboardOffersNewRoute,
+  DashboardOffersIndexRoute: DashboardOffersIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
+  ExploreRoute: ExploreRoute,
+  FavoritesRoute: FavoritesRoute,
+  OffersRoute: OffersRoute,
+  OrdersRoute: OrdersRoute,
+  ProfileRoute: ProfileRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  OfferIdRoute: OfferIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
