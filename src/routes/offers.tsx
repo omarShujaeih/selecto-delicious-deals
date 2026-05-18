@@ -1,18 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { OfferCard } from "@/components/OfferCard";
-import { categories, offers } from "@/lib/sample-data";
+import { categories, offers as fallbackOffers, type Offer } from "@/lib/sample-data";
+import { fetchPublicOffers } from "@/lib/offers-data";
 
 export const Route = createFileRoute("/offers")({
   head: () => ({
     meta: [
       { title: "Offers — Selecto" },
-      {
-        name: "description",
-        content: "Top discounted meals from local restaurants on Selecto.",
-      },
+      { name: "description", content: "Top discounted meals from local restaurants on Selecto." },
     ],
   }),
   component: OffersPage,
@@ -21,6 +19,16 @@ export const Route = createFileRoute("/offers")({
 function OffersPage() {
   const [cat, setCat] = useState<(typeof categories)[number]>("All");
   const [q, setQ] = useState("");
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPublicOffers()
+      .then((d) => setOffers(d.length ? d : fallbackOffers))
+      .catch(() => setOffers(fallbackOffers))
+      .finally(() => setLoading(false));
+  }, []);
+
   const list = offers.filter(
     (o) =>
       (cat === "All" || o.category === cat) &&
@@ -80,9 +88,7 @@ function OffersPage() {
 
       <main className="flex-1 space-y-5 px-4 pb-6">
         <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-glow p-5 text-primary-foreground shadow-elevated">
-          <p className="text-xs font-semibold uppercase tracking-wider opacity-80">
-            Featured
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Featured</p>
           <h2 className="mt-1 font-display text-xl font-extrabold leading-tight">
             Delicious Meals
             <br />
@@ -99,10 +105,9 @@ function OffersPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {list.map((o) => (
-              <OfferCard key={o.id} offer={o} />
-            ))}
-            {list.length === 0 && (
+            {loading && <p className="py-6 text-center text-xs text-muted-foreground">Loading offers…</p>}
+            {!loading && list.map((o) => <OfferCard key={o.id} offer={o} />)}
+            {!loading && list.length === 0 && (
               <p className="py-10 text-center text-sm text-muted-foreground">
                 No offers match your search.
               </p>

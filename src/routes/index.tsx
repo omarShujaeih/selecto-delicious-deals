@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SelectoLogo } from "@/components/SelectoLogo";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -8,14 +9,10 @@ export const Route = createFileRoute("/")({
       { title: "Selecto — Great meals. Lower prices." },
       {
         name: "description",
-        content:
-          "Discover discounted meals from top local restaurants. Save more, eat better with Selecto.",
+        content: "Discover discounted meals from top local restaurants. Save more, eat better with Selecto.",
       },
       { property: "og:title", content: "Selecto — Great meals. Lower prices." },
-      {
-        property: "og:description",
-        content: "Discover discounted meals from top local restaurants.",
-      },
+      { property: "og:description", content: "Discover discounted meals from top local restaurants." },
     ],
   }),
   component: Splash,
@@ -23,10 +20,20 @@ export const Route = createFileRoute("/")({
 
 function Splash() {
   const [show, setShow] = useState(true);
+  const { user, isAdmin, isRestaurant, loading } = useAuth();
+  const nav = useNavigate();
+
   useEffect(() => {
-    const t = setTimeout(() => setShow(false), 1400);
+    const t = setTimeout(() => setShow(false), 1200);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (show || loading || !user) return;
+    if (isAdmin || isRestaurant) nav({ to: "/dashboard" });
+    else nav({ to: "/offers" });
+  }, [show, loading, user, isAdmin, isRestaurant, nav]);
+
   return (
     <div className="phone-frame flex flex-col">
       {show ? (
@@ -34,13 +41,9 @@ function Splash() {
           <SelectoLogo size={120} />
           <div>
             <h1 className="font-display text-4xl font-extrabold text-primary">Selecto</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Great Meals. Lower Prices.
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Great Meals. Lower Prices.</p>
           </div>
-          <p className="mt-12 text-xs text-muted-foreground">
-            Delicious meals at discounts you'll love.
-          </p>
+          <p className="mt-12 text-xs text-muted-foreground">Delicious meals at discounts you'll love.</p>
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 text-center">
@@ -48,21 +51,21 @@ function Splash() {
           <div className="space-y-2">
             <h1 className="font-display text-3xl font-extrabold">Welcome to Selecto</h1>
             <p className="text-sm text-muted-foreground">
-              Browse offers as a guest, or sign in to save favorites.
+              Sign in to save favorites and place orders, or browse as a guest.
             </p>
           </div>
           <div className="mt-4 flex w-full max-w-xs flex-col gap-3">
             <Link
-              to="/offers"
+              to="/auth"
               className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-card transition hover:bg-primary-glow"
             >
-              Explore offers
+              Sign in or sign up
             </Link>
             <Link
-              to="/dashboard"
-              className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+              to="/offers"
+              className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-card"
             >
-              I'm a restaurant or admin
+              Continue as guest
             </Link>
           </div>
         </div>

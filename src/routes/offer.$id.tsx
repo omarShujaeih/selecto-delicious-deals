@@ -1,50 +1,80 @@
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Heart, MapPin, Share2, Star, Users } from "lucide-react";
-import { discountPct, offerById } from "@/lib/sample-data";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { discountPct, offerById as fallbackOffer } from "@/lib/sample-data";
+import type { Offer } from "@/lib/sample-data";
 import { useFavorites } from "@/lib/favorites";
+import { fetchOfferById } from "@/lib/offers-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/offer/$id")({
-  loader: ({ params }) => {
-    const offer = offerById(params.id);
-    if (!offer) throw notFound();
-    return offer;
-  },
-  head: ({ loaderData }) => ({
+  head: () => ({
     meta: [
-      { title: loaderData ? `${loaderData.name} — Selecto` : "Offer — Selecto" },
-      {
-        name: "description",
-        content: loaderData?.description ?? "Discounted meal offer",
-      },
-      ...(loaderData
-        ? [
-            { property: "og:title", content: `${loaderData.name} — ${discountPct(loaderData)}% OFF` },
-            { property: "og:description", content: loaderData.description },
-            { property: "og:image", content: loaderData.image },
-          ]
-        : []),
+      { title: "Offer — Selecto" },
+      { name: "description", content: "Discounted meal offer" },
     ],
   }),
   component: OfferDetails,
-  notFoundComponent: () => (
-    <div className="phone-frame grid place-items-center p-8 text-center">
-      <p>Offer not found.</p>
-    </div>
-  ),
-  errorComponent: ({ error }) => (
-    <div className="phone-frame grid place-items-center p-8 text-center text-sm text-muted-foreground">
-      {error.message}
-    </div>
-  ),
 });
 
 function OfferDetails() {
-  const offer = Route.useLoaderData();
+  const { id } = Route.useParams();
   const router = useRouter();
   const { toggle, has } = useFavorites();
+  const { user } = useAuth();
+  const [offer, setOffer] = useState<(Offer & { restaurant_id?: string }) | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [placing, setPlacing] = useState(false);
+
+  useEffect(() => {
+    fetchOfferById(id)
+      .then((o) => setOffer(o ?? fallbackOffer(id) ?? null))
+      .catch(() => setOffer(fallbackOffer(id) ?? null))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return <div className="phone-frame grid place-items-center p-8 text-sm text-muted-foreground">Loading…</div>;
+  }
+  if (!offer) {
+    return (
+      <div className="phone-frame grid place-items-center p-8 text-center">
+        <p>Offer not found.</p>
+      </div>
+    );
+  }
+
   const fav = has(offer.id);
   const pct = discountPct(offer);
   const saved = (offer.originalPrice - offer.discountedPrice).toFixed(2);
+
+  async function order() {
+    if (!user) {
+      toast.error("Please sign in to place an order");
+      router.navigate({ to: "/auth" });
+      return;
+    }
+    if (!offer!.restaurant_id) {
+      toast.error("This is a demo offer — sign up restaurants to enable real orders.");
+      return;
+    }
+    setPlacing(true);
+    const { error } = await supabase.from("transactions").insert({
+      offer_id: offer!.id,
+      restaurant_id: offer!.restaurant_id,
+      customer_id: user.id,
+      sale_amount: offer!.discountedPrice,
+    });
+    setPlacing(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Order placed!");
+    router.navigate({ to: "/orders" });
+  }
 
   return (
     <div className="phone-frame flex flex-col">
@@ -72,9 +102,7 @@ function OfferDetails() {
             </button>
           </div>
         </div>
-        <span className="discount-badge absolute left-4 top-16 rounded-md px-2 py-1 text-[11px]">
-          DISCOUNT
-        </span>
+        <span className="discount-badge absolute left-4 top-16 rounded-md px-2 py-1 text-[11px]">DISCOUNT</span>
         <div className="absolute right-4 top-16 grid size-16 place-items-center rounded-full bg-discount text-discount-foreground shadow-elevated">
           <div className="text-center leading-tight">
             <div className="text-base font-extrabold">{pct}%</div>
@@ -97,15 +125,11 @@ function OfferDetails() {
         </div>
 
         <div className="flex items-baseline gap-3">
-          <span className="text-muted-foreground line-through">
-            ${offer.originalPrice.toFixed(2)}
-          </span>
+          <span className="text-muted-foreground line-through">${offer.originalPrice.toFixed(2)}</span>
           <span className="font-display text-3xl font-extrabold text-primary">
             ${offer.discountedPrice.toFixed(2)}
           </span>
-          <span className="ml-auto text-xs font-semibold text-success">
-            You save ${saved}
-          </span>
+          <span className="ml-auto text-xs font-semibold text-success">You save ${saved}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -115,9 +139,7 @@ function OfferDetails() {
           <Info icon={Clock} title={offer.validUntil} sub="Valid till" />
         </div>
 
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {offer.description}
-        </p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{offer.description}</p>
 
         <div className="rounded-xl bg-secondary p-3 text-secondary-foreground">
           <p className="text-xs font-bold">Hurry! Limited time offer</p>
@@ -126,12 +148,18 @@ function OfferDetails() {
       </main>
 
       <div className="sticky bottom-0 border-t border-border bg-background/95 px-5 py-4 backdrop-blur">
-        <Link
-          to="/orders"
-          className="flex w-full items-center justify-center rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-elevated transition hover:bg-primary-glow"
+        <button
+          onClick={order}
+          disabled={placing}
+          className="flex w-full items-center justify-center rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-elevated transition hover:bg-primary-glow disabled:opacity-60"
         >
-          Order Now · ${offer.discountedPrice.toFixed(2)}
-        </Link>
+          {placing ? "Placing order…" : `Order Now · $${offer.discountedPrice.toFixed(2)}`}
+        </button>
+        {!user && (
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            <Link to="/auth" className="font-semibold text-primary">Sign in</Link> to place orders.
+          </p>
+        )}
       </div>
     </div>
   );
