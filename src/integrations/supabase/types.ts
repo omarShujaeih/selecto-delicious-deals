@@ -27,6 +27,7 @@ export type Database = {
           image: string | null
           name: string
           original_price: number
+          pickup_time: string | null
           prep_minutes: string | null
           rating: number | null
           restaurant_id: string
@@ -44,6 +45,7 @@ export type Database = {
           image?: string | null
           name: string
           original_price: number
+          pickup_time?: string | null
           prep_minutes?: string | null
           rating?: number | null
           restaurant_id: string
@@ -61,6 +63,7 @@ export type Database = {
           image?: string | null
           name?: string
           original_price?: number
+          pickup_time?: string | null
           prep_minutes?: string | null
           rating?: number | null
           restaurant_id?: string
