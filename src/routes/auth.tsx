@@ -20,8 +20,6 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"customer" | "restaurant">("customer");
-  const [restaurantName, setRestaurantName] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,7 +29,9 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
+        // Public signup creates a Customer account only.
+        // Restaurant & Admin accounts are created by the Admin.
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -40,17 +40,6 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        const uid = data.user?.id;
-        if (uid && role === "restaurant") {
-          // Wait briefly for trigger then upgrade role + create restaurant.
-          await supabase.from("user_roles").insert({ user_id: uid, role: "restaurant" });
-          await supabase.from("restaurants").insert({
-            owner_id: uid,
-            name: restaurantName || `${name || "My"} Restaurant`,
-            cuisine: "Other",
-            city: "—",
-          });
-        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -73,6 +62,7 @@ function AuthPage() {
     navigate({ to: "/offers" });
   }
 
+
   return (
     <div className="phone-frame flex flex-col px-6 py-8">
       <div className="flex items-center gap-3">
@@ -90,43 +80,15 @@ function AuthPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {mode === "signin"
             ? "Sign in to save favorites and place orders."
-            : "Join as a customer or list your restaurant."}
+            : "Customer accounts only. Restaurant accounts are created by the Selecto team."}
         </p>
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-3">
         {mode === "signup" && (
-          <>
-            <Field label="Your name" value={name} onChange={(e) => setName(e.currentTarget.value)} />
-            <div>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                I am a
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {(["customer", "restaurant"] as const).map((r) => (
-                  <button
-                    type="button"
-                    key={r}
-                    onClick={() => setRole(r)}
-                    className={`rounded-xl px-3 py-2.5 text-sm font-semibold ${
-                      role === r ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-                    }`}
-                  >
-                    {r === "customer" ? "Customer" : "Restaurant"}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {role === "restaurant" && (
-              <Field
-                label="Restaurant name"
-                value={restaurantName}
-                onChange={(e) => setRestaurantName(e.currentTarget.value)}
-                required
-              />
-            )}
-          </>
+          <Field label="Your name" value={name} onChange={(e) => setName(e.currentTarget.value)} />
         )}
+
         <Field
           label="Email"
           type="email"
