@@ -52,9 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  async function loadRoles(uid: string) {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles((data ?? []).map((r) => r.role as AppRole));
+  async function loadRoles(_uid: string) {
+    const { data } = await supabase.rpc("get_my_roles");
+    setRoles((data ?? []).map((r: any) => r.role as AppRole));
   }
 
   const value = useMemo<AuthCtx>(
@@ -76,3 +76,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export const useAuth = () => useContext(Ctx);
+
+import { useRouter } from "@tanstack/react-router";
+export function useCustomerGuard() {
+  const { isAdmin, isRestaurant, loading } = useAuth();
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (loading) return;
+    if (isAdmin || isRestaurant) {
+      router.navigate({ to: "/dashboard" });
+    }
+  }, [isAdmin, isRestaurant, loading, router]);
+}

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MapPin, Search, Star, Store } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 export const Route = createFileRoute("/restaurants")({
   head: () => ({
@@ -19,6 +19,8 @@ type Row = {
   name: string;
   cuisine: string;
   city: string | null;
+  address: string | null;
+  contact_email: string | null;
   active: boolean;
   rating: number;
   offers: { count: number }[];
@@ -33,7 +35,7 @@ function RestaurantsPage() {
     (async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("id,name,cuisine,city,active,rating, offers(count)")
+        .select("id,name,cuisine,city,address,contact_email,active,rating, offers(count)")
         .eq("active", true)
         .order("rating", { ascending: false });
       setRows((data ?? []) as Row[]);
@@ -88,6 +90,11 @@ function RestaurantsPage() {
                   <p className="text-[11px] text-muted-foreground">
                     {r.cuisine} · {r.city ?? "Ramallah"}
                   </p>
+                  {(r.address || r.contact_email) && (
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                      {r.address ?? r.contact_email}
+                    </p>
+                  )}
                   <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold">
                     <Star className="size-3 fill-primary text-primary" /> {r.rating}
                     <span className="ml-2 text-muted-foreground">· {count} offers</span>

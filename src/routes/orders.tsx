@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClipboardList } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BottomNav } from "@/components/BottomNav";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomerGuard } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/orders")({
   head: () => ({
@@ -28,6 +29,7 @@ function OrdersPage() {
   const { user } = useAuth();
   const [tx, setTx] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
+  useCustomerGuard();
 
   useEffect(() => {
     if (!user) {
@@ -45,7 +47,7 @@ function OrdersPage() {
   }, [user]);
 
   return (
-    <div className="phone-frame flex flex-col">
+    <div className="phone-frame flex flex-col min-h-screen pb-20">
       <header className="px-4 pt-5 pb-3">
         <h1 className="font-display text-2xl font-extrabold">Your Orders</h1>
         <p className="text-xs text-muted-foreground">Recent and active orders</p>
@@ -80,7 +82,7 @@ function OrdersPage() {
                     {t.restaurants?.name} · {new Date(t.created_at).toLocaleString()}
                   </p>
                 </div>
-                <span className="text-sm font-bold">${Number(t.sale_amount).toFixed(2)}</span>
+                <span className="text-sm font-bold">₪{Number(t.sale_amount).toFixed(2)}</span>
               </li>
             ))}
           </ul>

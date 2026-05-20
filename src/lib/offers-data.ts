@@ -1,5 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Offer } from "@/lib/sample-data";
+import {
+  categories,
+  discountPct,
+  offerById as fallbackOfferById,
+  offers as fallbackOffers,
+} from "@/lib/sample-data";
+
+export type { Offer };
+export { categories, discountPct, fallbackOfferById, fallbackOffers };
 
 type DbOffer = {
   id: string;
@@ -62,12 +71,18 @@ export async function fetchOfferById(id: string) {
 }
 
 export async function fetchMyRestaurant(userId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("restaurants")
     .select("*")
     .eq("owner_id", userId)
-    .maybeSingle();
-  return data;
+    .limit(1);
+  
+  if (error) {
+    console.error("fetchMyRestaurant error:", error);
+    return null;
+  }
+  
+  return data && data.length > 0 ? data[0] : null;
 }
 
 export async function fetchMyOffers(restaurantId: string) {

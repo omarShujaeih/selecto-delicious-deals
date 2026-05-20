@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { SelectoLogo } from "@/components/SelectoLogo";
+import { SelectoLogo } from "@/components/layout/SelectoLogo";
+import { Shield } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -41,8 +42,18 @@ function AuthPage() {
         });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+
+        if (authData?.user) {
+          const { data: roleRows } = await supabase.rpc("get_my_roles");
+          
+          const roles = (roleRows ?? []).map((r: any) => r.role);
+          if (roles.includes("admin") || roles.includes("restaurant")) {
+            navigate({ to: "/dashboard" });
+            return;
+          }
+        }
       }
       navigate({ to: "/offers" });
     } catch (e: any) {
@@ -64,7 +75,7 @@ function AuthPage() {
 
 
   return (
-    <div className="phone-frame flex flex-col px-6 py-8">
+    <div className="flex flex-col px-6 py-8 min-h-screen max-w-md mx-auto w-full">
       <div className="flex items-center gap-3">
         <SelectoLogo size={48} />
         <div>
@@ -145,6 +156,17 @@ function AuthPage() {
       <Link to="/offers" className="mt-4 text-center text-xs text-muted-foreground underline-offset-4 hover:underline">
         Continue as guest
       </Link>
+
+      <div className="mt-6 border-t border-border pt-4 text-center">
+        <p className="text-xs text-muted-foreground">أنت شريك أو مدير؟ / Are you a partner or admin?</p>
+        <Link
+          to="/portal"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/10 transition-colors w-full justify-center"
+        >
+          <Shield className="size-3.5" />
+          <span>بوابة الشركاء والمدراء / Partner Portal</span>
+        </Link>
+      </div>
     </div>
   );
 }

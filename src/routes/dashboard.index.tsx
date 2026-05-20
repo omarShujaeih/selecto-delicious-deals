@@ -3,9 +3,7 @@ import { DollarSign, Percent, ShoppingBag, Store, TrendingUp } from "lucide-reac
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyOffers, fetchMyRestaurant } from "@/lib/offers-data";
-import { discountPct } from "@/lib/sample-data";
-import type { Offer } from "@/lib/sample-data";
+import { discountPct, fetchMyOffers, fetchMyRestaurant, type Offer } from "@/lib/offers-data";
 
 export const Route = createFileRoute("/dashboard/")({
   component: RestaurantOverview,

@@ -3,14 +3,15 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyRestaurant } from "@/lib/offers-data";
+import { fetchMyRestaurant, fetchOfferById } from "@/lib/offers-data";
 import { OfferCard } from "@/components/offers/OfferCard";
 
-export const Route = createFileRoute("/dashboard/offers/new")({
-  component: AddOffer,
+export const Route = createFileRoute("/dashboard/offers/edit/$id")({
+  component: EditOffer,
 });
 
-function AddOffer() {
+function EditOffer() {
+  const { id } = Route.useParams();
   const router = useRouter();
   const { user } = useAuth();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
@@ -37,7 +38,22 @@ function AddOffer() {
       setRestaurantId(r?.id ?? null);
       if (r?.name) setRestaurantName(r.name);
     });
-  }, [user]);
+    
+    // Load existing offer
+    fetchOfferById(id).then((o) => {
+      if (o) {
+        setName(o.name);
+        setDescription(o.description);
+        setImage(o.image);
+        setCategory(o.category);
+        setOriginal(o.originalPrice);
+        setDiscounted(o.discountedPrice);
+        setValidUntil(o.validUntil);
+        setPickupTime(o.pickupTime || "");
+        setActive(o.active ?? true);
+      }
+    });
+  }, [user, id]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -46,8 +62,7 @@ function AddOffer() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("offers").insert({
-      restaurant_id: restaurantId,
+    const { error } = await supabase.from("offers").update({
       name,
       description,
       image,
@@ -56,10 +71,9 @@ function AddOffer() {
       original_price: original,
       discounted_price: discounted,
       valid_until: validUntil,
-      prep_minutes: "20-25 min",
       pickup_time: pickupTime,
       active,
-    });
+    }).eq("id", id);
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -86,7 +100,7 @@ function AddOffer() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-xl font-extrabold">Add New Offer</h1>
+      <h1 className="font-display text-xl font-extrabold">Edit Offer</h1>
       
       <div className="space-y-2">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Live Preview</p>

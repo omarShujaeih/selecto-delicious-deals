@@ -28,12 +28,16 @@ const adminNav = [
 function DashboardLayout() {
   const loc = useLocation();
   const nav = useNavigate();
-  const { user, loading, isAdmin, isRestaurant } = useAuth();
+  const { user, loading, isAdmin, isRestaurant, signOut } = useAuth();
 
   useEffect(() => {
     if (loading) return;
     if (!user) nav({ to: "/auth" });
-  }, [user, loading, nav]);
+    // Auto-redirect admin to admin dashboard when landing on base /dashboard
+    if (isAdmin && !isRestaurant && loc.pathname === "/dashboard") {
+      nav({ to: "/dashboard/admin" });
+    }
+  }, [user, loading, nav, isAdmin, isRestaurant, loc.pathname]);
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? loc.pathname === to : loc.pathname.startsWith(to);
@@ -73,12 +77,12 @@ function DashboardLayout() {
           {isRestaurant && <NavGroup title="Restaurant" items={restaurantNav} isActive={isActive} />}
           {isAdmin && <NavGroup title="Admin" items={adminNav} isActive={isActive} />}
         </nav>
-        <Link
-          to="/offers"
-          className="mt-4 block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-muted-foreground hover:bg-secondary"
+        <button
+          onClick={signOut}
+          className="mt-6 block w-full rounded-xl border border-border px-3 py-2 text-center text-xs font-bold text-destructive hover:bg-destructive/10"
         >
-          ← Back to customer app
-        </Link>
+          تسجيل الخروج (Sign Out)
+        </button>
       </aside>
 
       <main className="flex-1">

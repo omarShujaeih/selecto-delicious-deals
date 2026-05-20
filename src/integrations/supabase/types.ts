@@ -103,30 +103,39 @@ export type Database = {
       restaurants: {
         Row: {
           active: boolean
+          address: string | null
           city: string | null
+          contact_email: string | null
           created_at: string
           cuisine: string
           id: string
+          map_url: string | null
           name: string
           owner_id: string | null
           rating: number
         }
         Insert: {
           active?: boolean
+          address?: string | null
           city?: string | null
+          contact_email?: string | null
           created_at?: string
           cuisine: string
           id?: string
+          map_url?: string | null
           name: string
           owner_id?: string | null
           rating?: number
         }
         Update: {
           active?: boolean
+          address?: string | null
           city?: string | null
+          contact_email?: string | null
           created_at?: string
           cuisine?: string
           id?: string
+          map_url?: string | null
           name?: string
           owner_id?: string | null
           rating?: number

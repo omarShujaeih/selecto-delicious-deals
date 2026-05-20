@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { fetchMyOffers, fetchMyRestaurant } from "@/lib/offers-data";
-import { discountPct } from "@/lib/sample-data";
-import type { Offer } from "@/lib/sample-data";
+import { discountPct, fetchMyOffers, fetchMyRestaurant, type Offer } from "@/lib/offers-data";
+
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/offers/")({
   component: OffersList,
@@ -23,6 +24,17 @@ function OffersList() {
       setLoading(false);
     })();
   }, [user]);
+
+  async function deleteOffer(id: string) {
+    if (!confirm("Are you sure you want to delete this offer?")) return;
+    const { error } = await supabase.from("offers").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete offer");
+    } else {
+      toast.success("Offer deleted successfully");
+      setOffers((prev) => prev.filter((o) => o.id !== id));
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -52,14 +64,28 @@ function OffersList() {
                   </span>
                 </div>
                 <div className="mt-0.5 flex items-baseline gap-2 text-xs">
-                  <span className="text-muted-foreground line-through">${o.originalPrice.toFixed(2)}</span>
-                  <span className="font-bold">${o.discountedPrice.toFixed(2)}</span>
+                  <span className="text-muted-foreground line-through">₪{o.originalPrice.toFixed(2)}</span>
+                  <span className="font-bold">₪{o.discountedPrice.toFixed(2)}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground">Valid till {o.validUntil}</p>
               </div>
-              <button className="grid size-9 place-items-center rounded-full bg-secondary text-primary" aria-label="Edit">
-                <Pencil className="size-4" />
-              </button>
+              <div className="flex flex-col gap-2">
+                <Link 
+                  to="/dashboard/offers/edit/$id" 
+                  params={{ id: o.id }}
+                  className="grid size-9 place-items-center rounded-full bg-secondary text-primary hover:bg-primary hover:text-white transition" 
+                  aria-label="Edit"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button 
+                  onClick={() => deleteOffer(o.id)}
+                  className="grid size-9 place-items-center rounded-full bg-secondary text-destructive hover:bg-destructive hover:text-white transition" 
+                  aria-label="Delete"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

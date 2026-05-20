@@ -1,75 +1,81 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BadgeCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { SelectoLogo } from "@/components/SelectoLogo";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Selecto — Great meals. Lower prices." },
+      { title: "Selecto | خصومات المطاعم في رام الله" },
       {
         name: "description",
-        content: "Discover discounted meals from top local restaurants. Save more, eat better with Selecto.",
+        content:
+          "اكتشف عروض وخصومات يومية على وجبات مختارة من مطاعم محلية في رام الله.",
       },
-      { property: "og:title", content: "Selecto — Great meals. Lower prices." },
-      { property: "og:description", content: "Discover discounted meals from top local restaurants." },
+      { property: "og:title", content: "Selecto | خصومات المطاعم في رام الله" },
+      {
+        property: "og:description",
+        content: "خصومات يومية على وجبات مختارة من مطاعم محلية.",
+      },
     ],
   }),
   component: Splash,
 });
 
 function Splash() {
-  const [show, setShow] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const { user, isAdmin, isRestaurant, loading } = useAuth();
   const nav = useNavigate();
 
   useEffect(() => {
-    const t = setTimeout(() => setShow(false), 1200);
-    return () => clearTimeout(t);
+    const timeout = setTimeout(() => setShowSplash(false), 1400);
+    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
-    if (show || loading || !user) return;
-    if (isAdmin || isRestaurant) nav({ to: "/dashboard" });
-    else nav({ to: "/offers" });
-  }, [show, loading, user, isAdmin, isRestaurant, nav]);
+    if (showSplash || loading || !user) return;
+    nav({ to: isAdmin || isRestaurant ? "/dashboard" : "/offers" });
+  }, [showSplash, loading, user, isAdmin, isRestaurant, nav]);
 
   return (
-    <div className="phone-frame flex flex-col">
-      {show ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 text-center animate-in fade-in zoom-in-95 duration-500">
-          <SelectoLogo size={120} />
-          <div>
-            <h1 className="font-display text-4xl font-extrabold text-primary">Selecto</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Great Meals. Lower Prices.</p>
-          </div>
-          <p className="mt-12 text-xs text-muted-foreground">Delicious meals at discounts you'll love.</p>
+    <div className="relative flex min-h-screen w-full select-none flex-col overflow-hidden bg-[#123f32] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,rgba(255,255,255,0.08),transparent_27%),linear-gradient(150deg,#1d5f46_0%,#123f32_48%,#0e2f28_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[radial-gradient(circle_at_18%_100%,rgba(122,176,139,0.2),transparent_42%)]" />
+
+      {showSplash ? (
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <BrandLockup />
+          <p className="mt-2 text-[12px] font-semibold text-white/76">
+            خصومات لذيذة من مطاعمك المفضلة
+          </p>
         </div>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 text-center">
-          <SelectoLogo size={96} />
-          <div className="space-y-2">
-            <h1 className="font-display text-3xl font-extrabold">Welcome to Selecto</h1>
-            <p className="text-sm text-muted-foreground">
-              Sign in to save favorites and place orders, or browse as a guest.
-            </p>
-          </div>
-          <div className="mt-4 flex w-full max-w-xs flex-col gap-3">
-            <Link
-              to="/auth"
-              className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-card transition hover:bg-primary-glow"
-            >
-              Sign in or sign up
-            </Link>
-            <Link
-              to="/offers"
-              className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-card"
-            >
-              Continue as guest
-            </Link>
-          </div>
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <BrandLockup />
+          <p className="mt-3 max-w-[280px] text-[12px] font-semibold leading-relaxed text-white/78">
+            اكتشف عروض وخصومات يومية على وجبات مختارة من أفضل المطاعم حولك
+          </p>
+          <Link
+            to="/offers"
+            className="mt-9 rounded-full bg-white px-8 py-3 text-sm font-black text-[#123f32] shadow-[0_18px_40px_rgba(0,0,0,0.16)] transition hover:bg-white/95 active:scale-95"
+          >
+            ابدأ الآن
+          </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+function BrandLockup() {
+  return (
+    <div className="flex items-center justify-center gap-3" dir="ltr">
+      <div className="grid size-12 place-items-center rounded-[1rem] bg-white/14 shadow-[0_16px_36px_rgba(0,0,0,0.14)] ring-1 ring-white/10 backdrop-blur-md">
+        <BadgeCheck className="size-6 text-white" strokeWidth={2.35} />
+      </div>
+      <h1 className="font-sans text-[2.65rem] font-black leading-none text-white md:text-5xl">
+        Selecto
+      </h1>
     </div>
   );
 }

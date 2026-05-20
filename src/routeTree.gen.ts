@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +29,7 @@ import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as DashboardOffersIndexRouteImport } from './routes/dashboard.offers.index'
 import { Route as DashboardOffersNewRouteImport } from './routes/dashboard.offers.new'
 import { Route as DashboardAdminRestaurantsRouteImport } from './routes/dashboard.admin.restaurants'
+import { Route as DashboardOffersEditIdRouteImport } from './routes/dashboard.offers.edit.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -41,6 +44,11 @@ const RestaurantsRoute = RestaurantsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersRoute = OrdersRouteImport.update({
@@ -66,6 +74,11 @@ const ExploreRoute = ExploreRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -119,16 +132,23 @@ const DashboardAdminRestaurantsRoute =
     path: '/restaurants',
     getParentRoute: () => DashboardAdminRoute,
   } as any)
+const DashboardOffersEditIdRoute = DashboardOffersEditIdRouteImport.update({
+  id: '/offers/edit/$id',
+  path: '/offers/edit/$id',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/offers': typeof OffersRoute
   '/orders': typeof OrdersRoute
+  '/portal': typeof PortalRoute
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -139,15 +159,18 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
   '/dashboard/offers/new': typeof DashboardOffersNewRoute
   '/dashboard/offers/': typeof DashboardOffersIndexRoute
+  '/dashboard/offers/edit/$id': typeof DashboardOffersEditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/cart': typeof CartRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/offers': typeof OffersRoute
   '/orders': typeof OrdersRoute
+  '/portal': typeof PortalRoute
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -158,17 +181,20 @@ export interface FileRoutesByTo {
   '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
   '/dashboard/offers/new': typeof DashboardOffersNewRoute
   '/dashboard/offers': typeof DashboardOffersIndexRoute
+  '/dashboard/offers/edit/$id': typeof DashboardOffersEditIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/offers': typeof OffersRoute
   '/orders': typeof OrdersRoute
+  '/portal': typeof PortalRoute
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -179,6 +205,7 @@ export interface FileRoutesById {
   '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
   '/dashboard/offers/new': typeof DashboardOffersNewRoute
   '/dashboard/offers/': typeof DashboardOffersIndexRoute
+  '/dashboard/offers/edit/$id': typeof DashboardOffersEditIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -186,11 +213,13 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/cart'
     | '/dashboard'
     | '/explore'
     | '/favorites'
     | '/offers'
     | '/orders'
+    | '/portal'
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
@@ -201,15 +230,18 @@ export interface FileRouteTypes {
     | '/dashboard/admin/restaurants'
     | '/dashboard/offers/new'
     | '/dashboard/offers/'
+    | '/dashboard/offers/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/auth'
+    | '/cart'
     | '/explore'
     | '/favorites'
     | '/offers'
     | '/orders'
+    | '/portal'
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
@@ -220,16 +252,19 @@ export interface FileRouteTypes {
     | '/dashboard/admin/restaurants'
     | '/dashboard/offers/new'
     | '/dashboard/offers'
+    | '/dashboard/offers/edit/$id'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/auth'
+    | '/cart'
     | '/dashboard'
     | '/explore'
     | '/favorites'
     | '/offers'
     | '/orders'
+    | '/portal'
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
@@ -240,17 +275,20 @@ export interface FileRouteTypes {
     | '/dashboard/admin/restaurants'
     | '/dashboard/offers/new'
     | '/dashboard/offers/'
+    | '/dashboard/offers/edit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  CartRoute: typeof CartRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   OffersRoute: typeof OffersRoute
   OrdersRoute: typeof OrdersRoute
+  PortalRoute: typeof PortalRoute
   ProfileRoute: typeof ProfileRoute
   RestaurantsRoute: typeof RestaurantsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -278,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders': {
@@ -313,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -385,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminRestaurantsRouteImport
       parentRoute: typeof DashboardAdminRoute
     }
+    '/dashboard/offers/edit/$id': {
+      id: '/dashboard/offers/edit/$id'
+      path: '/offers/edit/$id'
+      fullPath: '/dashboard/offers/edit/$id'
+      preLoaderRoute: typeof DashboardOffersEditIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -406,6 +465,7 @@ interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardOffersNewRoute: typeof DashboardOffersNewRoute
   DashboardOffersIndexRoute: typeof DashboardOffersIndexRoute
+  DashboardOffersEditIdRoute: typeof DashboardOffersEditIdRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -414,6 +474,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardOffersNewRoute: DashboardOffersNewRoute,
   DashboardOffersIndexRoute: DashboardOffersIndexRoute,
+  DashboardOffersEditIdRoute: DashboardOffersEditIdRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
@@ -424,11 +485,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  CartRoute: CartRoute,
   DashboardRoute: DashboardRouteWithChildren,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   OffersRoute: OffersRoute,
   OrdersRoute: OrdersRoute,
+  PortalRoute: PortalRoute,
   ProfileRoute: ProfileRoute,
   RestaurantsRoute: RestaurantsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -437,3 +500,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -9,8 +9,8 @@ import {
   Settings,
   User as UserIcon,
 } from "lucide-react";
-import { BottomNav } from "@/components/BottomNav";
-import { useAuth } from "@/lib/auth-context";
+import { BottomNav } from "@/components/layout/BottomNav";
+import { useAuth, useCustomerGuard } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -33,12 +33,13 @@ const rows = [
 
 function ProfilePage() {
   const { user, roles, signOut, isAdmin, isRestaurant } = useAuth();
+  useCustomerGuard();
   const nav = useNavigate();
   const name = (user?.user_metadata?.display_name as string) || user?.email?.split("@")[0] || "Guest";
   const roleLabel = isAdmin ? "Admin" : isRestaurant ? "Restaurant" : roles.length ? "Customer" : "Guest";
 
   return (
-    <div className="phone-frame flex flex-col">
+    <div className="phone-frame flex flex-col min-h-screen pb-20">
       <header className="bg-gradient-to-br from-primary to-primary-glow px-5 pb-12 pt-6 text-primary-foreground">
         <div className="mt-2 flex items-center gap-4">
           <div className="grid size-16 place-items-center rounded-full bg-white/20 text-2xl font-extrabold uppercase">
