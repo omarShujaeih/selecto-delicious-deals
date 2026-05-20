@@ -29,6 +29,11 @@ export function OfferCard({ offer }: { offer: Offer }) {
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold">{offer.name}</h3>
             <p className="truncate text-xs text-muted-foreground">{offer.restaurant}</p>
+            {offer.pickupTime && (
+              <p className="mt-0.5 truncate text-[10px] font-semibold text-primary">
+                Pickup · {offer.pickupTime}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-baseline gap-1.5">

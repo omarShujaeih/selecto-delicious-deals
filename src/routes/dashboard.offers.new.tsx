@@ -24,6 +24,7 @@ function AddOffer() {
   const [original, setOriginal] = useState(12.49);
   const [discounted, setDiscounted] = useState(7.49);
   const [validUntil, setValidUntil] = useState("Today, 10:00 PM");
+  const [pickupTime, setPickupTime] = useState("12:30 PM");
   const [active, setActive] = useState(true);
   const [busy, setBusy] = useState(false);
   const pct = original > 0 ? Math.round(((original - discounted) / original) * 100) : 0;
@@ -51,6 +52,7 @@ function AddOffer() {
       discounted_price: discounted,
       valid_until: validUntil,
       prep_minutes: "20-25 min",
+      pickup_time: pickupTime,
       active,
     });
     setBusy(false);
@@ -73,6 +75,13 @@ function AddOffer() {
           <Field label="Category" value={category} onChange={(e) => setCategory(e.currentTarget.value)} />
           <Field label="Valid Till" value={validUntil} onChange={(e) => setValidUntil(e.currentTarget.value)} />
         </div>
+        <Field
+          label="Pickup Time"
+          placeholder="e.g. 12:30 PM"
+          value={pickupTime}
+          onChange={(e) => setPickupTime(e.currentTarget.value)}
+          required
+        />
         <div className="grid grid-cols-2 gap-3">
           <Field
             label="Original Price ($)"

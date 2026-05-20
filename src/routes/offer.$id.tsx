@@ -133,7 +133,7 @@ function OfferDetails() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <Info icon={Clock} title={offer.prepMinutes} sub="Delivery Time" />
+          <Info icon={Clock} title={offer.pickupTime || "—"} sub="Pickup Time" />
           <Info icon={Users} title="1 Person" sub="Serves" />
           <Info icon={MapPin} title={`${offer.distanceKm} km away`} sub="Distance" />
           <Info icon={Clock} title={offer.validUntil} sub="Valid till" />
