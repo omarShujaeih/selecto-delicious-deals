@@ -9,6 +9,7 @@ export type Offer = {
   rating: number;
   distanceKm: number;
   prepMinutes: string;
+  pickupTime?: string;
   image: string;
   validUntil: string;
   description: string;

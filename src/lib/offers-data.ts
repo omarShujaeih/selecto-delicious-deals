@@ -12,6 +12,7 @@ type DbOffer = {
   discounted_price: number;
   valid_until: string | null;
   prep_minutes: string | null;
+  pickup_time: string | null;
   distance_km: number | null;
   rating: number | null;
   active: boolean;
@@ -31,6 +32,7 @@ export function mapOffer(o: DbOffer): Offer & { restaurant_id: string; active: b
     rating: Number(o.rating ?? 4.5),
     distanceKm: Number(o.distance_km ?? 1.5),
     prepMinutes: o.prep_minutes ?? "20-25 min",
+    pickupTime: o.pickup_time ?? "",
     image: o.image ?? "",
     validUntil: o.valid_until ?? "Today",
     description: o.description ?? "",
