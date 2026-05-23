@@ -9,7 +9,8 @@ const CreateRestaurantInput = z.object({
   display_name: z.string().min(1).max(120),
   restaurant_name: z.string().min(1).max(120),
   cuisine: z.string().min(1).max(80),
-  city: z.string().min(1).max(80).default("Ramallah"),
+  area: z.string().min(1).max(80).default("Ramallah"),
+  phone_number: z.string().optional(),
 });
 
 export const adminCreateRestaurant = createServerFn({ method: "POST" })
@@ -55,7 +56,9 @@ export const adminCreateRestaurant = createServerFn({ method: "POST" })
         owner_id: uid,
         name: data.restaurant_name,
         cuisine: data.cuisine,
-        city: data.city,
+        city: data.area, // Store the area in the city column
+        phone_number: data.phone_number || null,
+        contact_email: data.email,
         active: true,
       })
       .select()
@@ -63,4 +66,62 @@ export const adminCreateRestaurant = createServerFn({ method: "POST" })
     if (restErr) throw new Error(restErr.message);
 
     return { user_id: uid, restaurant };
+  });
+
+// Soft Delete (Toggle Active) Restaurant
+export const adminToggleRestaurantStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string(), active: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden: admin only");
+
+    const { error } = await supabaseAdmin
+      .from("restaurants")
+      .update({ active: data.active })
+      .eq("id", data.id);
+    
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const adminToggleOfferStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string(), active: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden: admin only");
+
+    const { error } = await supabaseAdmin
+      .from("offers")
+      .update({ active: data.active })
+      .eq("id", data.id);
+    
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const adminDeleteOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden: admin only");
+
+    const { error } = await supabaseAdmin
+      .from("offers")
+      .delete()
+      .eq("id", data.id);
+    
+    if (error) throw new Error(error.message);
+    return { success: true };
   });

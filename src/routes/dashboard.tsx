@@ -1,7 +1,25 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { BarChart3, LayoutDashboard, ListChecks, PlusCircle, Shield, Store } from "lucide-react";
+import { BarChart3, LayoutDashboard, ListChecks, PlusCircle, Shield, Store, ShoppingBag } from "lucide-react";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+
+import React from "react";
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div className="p-10 text-red-500 font-mono text-xs whitespace-pre-wrap">CRASH DASHBOARD: {this.state.error?.message}{'\n'}{this.state.error?.stack}</div>;
+    }
+    return this.props.children;
+  }
+}
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -10,19 +28,21 @@ export const Route = createFileRoute("/dashboard")({
       { name: "description", content: "Restaurant and admin tools for Selecto." },
     ],
   }),
-  component: DashboardLayout,
+  component: () => <ErrorBoundary><DashboardLayout /></ErrorBoundary>,
 });
 
 const restaurantNav = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/dashboard/offers", label: "My Offers", icon: ListChecks },
-  { to: "/dashboard/offers/new", label: "Add Offer", icon: PlusCircle },
+  { to: "/dashboard/offers", label: "My Menu", icon: ListChecks },
+  { to: "/dashboard/offers/new", label: "Add Item", icon: PlusCircle },
+  { to: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
   { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const adminNav = [
-  { to: "/dashboard/admin", label: "Admin", icon: Shield },
+  { to: "/dashboard/admin", label: "Admin", icon: Shield, exact: true },
   { to: "/dashboard/admin/restaurants", label: "Restaurants", icon: Store },
+  { to: "/dashboard/admin/offers", label: "Menu Items", icon: ListChecks },
 ];
 
 function DashboardLayout() {
@@ -32,7 +52,19 @@ function DashboardLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) nav({ to: "/auth" });
+    if (!user) {
+      nav({ to: "/auth" });
+      return;
+    }
+    if (!isAdmin && !isRestaurant) {
+      nav({ to: "/offers" });
+      return;
+    }
+    // Block non-admin from admin sub-routes
+    if (!isAdmin && loc.pathname.startsWith("/dashboard/admin")) {
+      nav({ to: "/dashboard" });
+      return;
+    }
     // Auto-redirect admin to admin dashboard when landing on base /dashboard
     if (isAdmin && !isRestaurant && loc.pathname === "/dashboard") {
       nav({ to: "/dashboard/admin" });
@@ -46,6 +78,10 @@ function DashboardLayout() {
     return <div className="grid min-h-dvh place-items-center text-sm text-muted-foreground">Loading…</div>;
   }
   if (!user) return null;
+
+  if (!isAdmin && loc.pathname.startsWith("/dashboard/admin")) {
+    return null;
+  }
 
   if (!isAdmin && !isRestaurant) {
     return (

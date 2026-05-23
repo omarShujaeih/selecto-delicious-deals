@@ -120,11 +120,11 @@ async function runSeed() {
   }
 
   // Use the admin's authenticated client to update roles and insert restaurant data
-  const adminClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  const adminClient = createClient(SUPABASE_URL as string, SUPABASE_KEY as string, {
     auth: { persistSession: false },
     global: {
       headers: {
-        Authorization: `Bearer ${adminSession.session.access_token}`,
+        Authorization: `Bearer ${adminSession.session?.access_token || ""}`,
       },
     },
   });

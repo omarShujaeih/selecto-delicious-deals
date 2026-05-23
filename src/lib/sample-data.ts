@@ -3,9 +3,10 @@ export type Offer = {
   name: string;
   restaurant: string;
   cuisine: string;
-  category: "Burgers" | "Pizzas" | "Bowls" | "Asian" | "Sushi";
+  category: string;
   originalPrice: number;
   discountedPrice: number;
+  restaurantPrice?: number;
   rating: number;
   distanceKm: number;
   prepMinutes: string;
@@ -13,6 +14,9 @@ export type Offer = {
   image: string;
   validUntil: string;
   description: string;
+  city?: string;
+  area?: string;
+  address?: string;
 };
 
 const img = (q: string) =>

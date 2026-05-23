@@ -1,4 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { getMyRestaurantStats } from "@/lib/restaurant.functions";
+import { toast } from "sonner";
 import { salesTrend } from "@/lib/sample-data";
 
 export const Route = createFileRoute("/dashboard/analytics")({
@@ -6,6 +10,21 @@ export const Route = createFileRoute("/dashboard/analytics")({
 });
 
 function Analytics() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const res = await getMyRestaurantStats();
+        setStats(res);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to load stats");
+      }
+    })();
+  }, [user]);
+
   const max = Math.max(...salesTrend.map((p) => p.sales));
   const w = 320;
   const h = 140;
@@ -22,15 +41,15 @@ function Analytics() {
       <h1 className="font-display text-xl font-extrabold">Analytics</h1>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label="Total Sales" value="$1,245.80" delta="+15.4%" />
-        <Metric label="Orders" value="128" delta="+16.3%" />
-        <Metric label="Avg Order Value" value="$9.74" delta="+6.8%" />
-        <Metric label="Commission" value="$175.40" delta="+14.5%" />
+        <Metric label="Customer Payments" value={`₪${(stats?.totalCustomerPayments || 0).toFixed(2)}`} />
+        <Metric label="Orders" value={String(stats?.totalOrders || 0)} />
+        <Metric label="Your Payouts" value={`₪${(stats?.totalPayouts || 0).toFixed(2)}`} />
+        <Metric label="Selecto Commission" value={`₪${(stats?.totalCommissions || 0).toFixed(2)}`} />
       </div>
 
       <div className="rounded-2xl bg-card p-4 shadow-card">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-bold">Sales Trend</h2>
+          <h2 className="text-sm font-bold">Sales Trend (Sample Data)</h2>
           <span className="text-xs text-muted-foreground">This week</span>
         </div>
         <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label="Sales trend chart">
@@ -64,12 +83,12 @@ function Analytics() {
   );
 }
 
-function Metric({ label, value, delta }: { label: string; value: string; delta: string }) {
+function Metric({ label, value, delta }: { label: string; value: string; delta?: string }) {
   return (
     <div className="rounded-2xl bg-card p-3 shadow-card">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-1 text-xl font-extrabold">{value}</p>
-      <p className="text-[11px] font-semibold text-success">{delta}</p>
+      {delta && <p className="text-[11px] font-semibold text-success">{delta}</p>}
     </div>
   );
 }

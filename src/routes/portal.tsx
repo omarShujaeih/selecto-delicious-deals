@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SelectoLogo } from "@/components/layout/SelectoLogo";
 import { Shield, Store, LogIn, ArrowRight } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal")({
   head: () => ({
@@ -16,36 +18,67 @@ export const Route = createFileRoute("/portal")({
 
 function PartnerPortalPage() {
   const navigate = useNavigate();
+  const { user, loading, isAdmin, isRestaurant, isCustomer, roles } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Auto-redirect if already logged in and roles are loaded
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      if (roles.length === 0) {
+        console.log("[Portal] Roles array is still empty, waiting...");
+        return; // Wait for fetchRoles to finish!
+      }
+      
+      if (isAdmin || isRestaurant) {
+        console.log("[Portal] Logged in as partner/admin. Redirecting to dashboard...");
+        navigate({ to: "/dashboard" });
+      } else if (isCustomer) {
+        console.log("[Portal] Logged in as customer. Redirecting to offers with warning...");
+        toast.error("Customer accounts should use the customer app. / حسابات الزبائن يجب أن تستخدم تطبيق الزبائن.");
+        navigate({ to: "/offers" });
+      } else {
+        setErr(`Unknown role. Access denied. / لم يتم التعرف على الصلاحيات. Roles: ${JSON.stringify(roles)}`);
+      }
+    }
+  }, [user, loading, isAdmin, isRestaurant, isCustomer, roles, navigate]);
+
+  // Autofill helper
+  function fillDemo(demoEmail: string) {
+    setEmail(demoEmail);
+    setPassword("OmarSelecto2026");
+    setErr(null);
+    console.log(`Autofilled credentials for: ${demoEmail}`);
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
     setBusy(true);
+    console.log("Submit clicked. Email:", email);
+    
     try {
+      // 1. Sign in with password
+      console.log("Calling supabase.auth.signInWithPassword...");
       const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      console.log("signInWithPassword resolved. error:", error, "authData:", authData);
+      
       if (error) throw error;
 
       if (authData?.user) {
-        // Use RPC function (security definer) to bypass RLS timing issues
-        const { data: roleRows } = await supabase.rpc("get_my_roles");
-        
-        const roles = (roleRows ?? []).map((r: any) => r.role);
-        
-        if (roles.includes("admin") || roles.includes("restaurant")) {
-          navigate({ to: "/dashboard" });
-          return;
-        } else {
-          setErr("هذه البوابة مخصصة للشركاء والمدراء فقط / Partners & Admins only.");
-          await supabase.auth.signOut();
-        }
+        console.log("Sign-in successful. Waiting for AuthProvider to load roles and redirect...");
+      } else {
+        throw new Error("فشل استرجاع بيانات الحساب بعد تسجيل الدخول. User data not returned.");
       }
     } catch (e: any) {
+      console.error("Portal Login Error Catch:", e);
       setErr(e.message ?? "بيانات الدخول غير صحيحة / Invalid credentials");
     } finally {
+      console.log("Submit process finished. Setting busy to false.");
       setBusy(false);
     }
   }
@@ -70,7 +103,7 @@ function PartnerPortalPage() {
         <form onSubmit={submit} className="mt-8 space-y-4">
           <div>
             <label className="block mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              البريد الإلكتروني / Email
+              البريد الإلكتروني / EMAIL
             </label>
             <input
               type="email"
@@ -85,7 +118,7 @@ function PartnerPortalPage() {
 
           <div>
             <label className="block mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              كلمة المرور / Password
+              كلمة المرور / PASSWORD
             </label>
             <input
               type="password"
@@ -124,28 +157,48 @@ function PartnerPortalPage() {
         <div className="mt-8 p-4 rounded-xl border border-border bg-secondary/30 space-y-3">
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
             <Shield className="size-3.5 text-primary" />
-            <span>حسابات التجربة السريعة / Demo Accounts</span>
+            <span>حسابات التجربة السريعة / DEMO ACCOUNTS</span>
           </p>
           
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between items-center border-b border-border/40 pb-1.5">
+            <button
+              type="button"
+              onClick={() => fillDemo("omar@example.com")}
+              className="w-full flex justify-between items-center border-b border-border/40 pb-2 text-left hover:bg-primary/5 p-1 rounded transition-colors group"
+            >
               <div>
-                <span className="font-semibold text-foreground block">Omar (Admin)</span>
-                <span className="text-[10px] text-muted-foreground">omar.selecto@gmail.com</span>
+                <span className="font-semibold text-foreground block group-hover:text-primary transition-colors">Omar (Admin)</span>
+                <span className="text-[10px] text-muted-foreground">omar@example.com</span>
               </div>
               <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Admin</span>
-            </div>
+            </button>
 
-            <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => fillDemo("zaman@example.com")}
+              className="w-full flex justify-between items-center border-b border-border/40 pb-2 text-left hover:bg-primary/5 p-1 rounded transition-colors group"
+            >
               <div>
-                <span className="font-semibold text-foreground block">Zamn Cafe (Restaurant)</span>
-                <span className="text-[10px] text-muted-foreground">zaman.selecto@gmail.com</span>
+                <span className="font-semibold text-foreground block group-hover:text-primary transition-colors">Zamn Cafe (Restaurant)</span>
+                <span className="text-[10px] text-muted-foreground">zaman@example.com</span>
               </div>
               <span className="text-[10px] bg-accent/20 text-accent-foreground px-2 py-0.5 rounded-full font-bold">Partner</span>
-            </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fillDemo("burgers@example.com")}
+              className="w-full flex justify-between items-center text-left hover:bg-primary/5 p-1 rounded transition-colors group"
+            >
+              <div>
+                <span className="font-semibold text-foreground block group-hover:text-primary transition-colors">Rukab Burgers (Restaurant)</span>
+                <span className="text-[10px] text-muted-foreground">burgers@example.com</span>
+              </div>
+              <span className="text-[10px] bg-accent/20 text-accent-foreground px-2 py-0.5 rounded-full font-bold">Partner</span>
+            </button>
           </div>
-          <p className="text-[9px] text-muted-foreground text-center italic mt-1">
-            * كلمة المرور الافتراضية لجميع الحسابات: <span className="font-mono font-bold select-all bg-card px-1 py-0.5 rounded border">OmarSelecto2026</span>
+          <p className="text-[9px] text-muted-foreground text-center italic mt-1 leading-relaxed">
+            * اضغط على أي حساب لتعبئة البيانات تلقائياً. كلمة المرور لجميع الحسابات: <span className="font-mono font-bold select-all bg-card px-1 py-0.5 rounded border">OmarSelecto2026</span>
           </p>
         </div>
       </div>

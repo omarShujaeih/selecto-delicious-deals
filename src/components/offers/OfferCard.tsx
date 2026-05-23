@@ -5,12 +5,28 @@ import { useAuth } from "@/lib/auth-context";
 import { useFavorites } from "@/lib/favorites";
 import { discountPct, type Offer } from "@/lib/offers-data";
 
+const arabicCities: Record<string, string> = {
+  Ramallah: "رام الله",
+  Nablus: "نابلس",
+  Hebron: "الخليل",
+  Bethlehem: "بيت لحم",
+  Jerusalem: "القدس",
+  Jenin: "جنين",
+  Tulkarm: "طولكرم",
+  Qalqilya: "قلقيلية",
+  Jericho: "أريحا",
+};
+
 export function OfferCard({ offer }: { offer: Offer }) {
   const { toggle, has } = useFavorites();
   const { user } = useAuth();
   const navigate = useNavigate();
   const fav = has(offer.id);
   const saved = offer.originalPrice - offer.discountedPrice;
+
+  const displayCity = offer.city ? (arabicCities[offer.city] || offer.city) : "";
+  const displayArea = offer.area || "";
+  const locationString = displayCity && displayArea ? `${displayCity}، ${displayArea}` : (displayCity || `${offer.distanceKm} كم`);
 
   return (
     <Link
@@ -63,9 +79,9 @@ export function OfferCard({ offer }: { offer: Offer }) {
               <Star className="size-3 fill-amber-500" />
               {offer.rating || "4.5"}
             </span>
-            <span className="flex items-center gap-0.5">
-              <MapPin className="size-3 text-primary" />
-              {offer.distanceKm} km
+            <span className="flex items-center gap-0.5 truncate max-w-[130px]">
+              <MapPin className="size-3 text-primary shrink-0" />
+              <span className="truncate">{locationString}</span>
             </span>
             {offer.pickupTime && (
               <span className="flex min-w-0 items-center gap-0.5 truncate text-primary">
@@ -86,7 +102,9 @@ export function OfferCard({ offer }: { offer: Offer }) {
                 ₪{offer.discountedPrice.toFixed(0)}
               </span>
             </div>
-            <p className="text-[10px] font-bold text-emerald-700">وفرت ₪{saved.toFixed(0)}</p>
+            {saved > 0 && (
+              <p className="text-[10px] font-bold text-emerald-700">وفرت ₪{saved.toFixed(0)}</p>
+            )}
           </div>
           <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-black text-primary-foreground">
             عرض

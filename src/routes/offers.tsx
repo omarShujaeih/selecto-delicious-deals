@@ -16,36 +16,117 @@ export const Route = createFileRoute("/offers")({
   component: OffersPage,
 });
 
+const cities = [
+  { value: "Ramallah", label: "رام الله (Ramallah)" },
+  { value: "Nablus", label: "نابلس (Nablus)" },
+  { value: "Hebron", label: "الخليل (Hebron)" },
+  { value: "Bethlehem", label: "بيت لحم (Bethlehem)" },
+  { value: "Jerusalem", label: "القدس (Jerusalem)" },
+  { value: "Jenin", label: "جنين (Jenin)" },
+  { value: "Tulkarm", label: "طولكرم (Tulkarm)" },
+  { value: "Qalqilya", label: "قلقيلية (Qalqilya)" },
+  { value: "Jericho", label: "أريحا (Jericho)" },
+];
+
+const arabicToEnglishMap: Record<string, string> = {
+  "رام الله": "Ramallah",
+  "نابلس": "Nablus",
+  "الخليل": "Hebron",
+  "بيت لحم": "Bethlehem",
+  "القدس": "Jerusalem",
+  "جنين": "Jenin",
+  "طولكرم": "Tulkarm",
+  "قلقيلية": "Qalqilya",
+  "أريحا": "Jericho",
+};
+
+function normalizeCityName(city: string): string {
+  const clean = city.trim();
+  if (arabicToEnglishMap[clean]) return arabicToEnglishMap[clean];
+  
+  for (const [ar, en] of Object.entries(arabicToEnglishMap)) {
+    if (clean.includes(ar) || clean.toLowerCase().includes(en.toLowerCase())) {
+      return en;
+    }
+  }
+  return clean;
+}
+
 function OffersPage() {
   const [cat, setCat] = useState<string>("All");
   const [q, setQ] = useState("");
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("selecto_selected_city");
+      return stored ? normalizeCityName(stored) : "Ramallah";
+    }
+    return "Ramallah";
+  });
   useCustomerGuard();
 
   useEffect(() => {
+    console.log("Fetching offers...");
+    const timeout = setTimeout(() => {
+      console.log("Timeout reached, forcing loading false");
+      setOffers(fallbackOffers);
+      setLoading(false);
+    }, 3000);
+
     fetchPublicOffers()
-      .then((d) => setOffers(d.length ? d : fallbackOffers))
-      .catch(() => setOffers(fallbackOffers))
-      .finally(() => setLoading(false));
+      .then((d) => {
+        console.log("Offers fetched:", d);
+        setOffers(d.length ? d : fallbackOffers);
+      })
+      .catch((e) => {
+        console.error("Offers fetch error:", e);
+        setOffers(fallbackOffers);
+      })
+      .finally(() => {
+        console.log("Offers fetch finally");
+        clearTimeout(timeout);
+        setLoading(false);
+      });
   }, []);
 
-  const list = offers.filter(
-    (o) =>
-      (cat === "All" || o.category === cat) &&
-      (q === "" ||
-        o.name.toLowerCase().includes(q.toLowerCase()) ||
-        o.restaurant.toLowerCase().includes(q.toLowerCase())),
-  );
+  const handleCityChange = (city: string) => {
+    const norm = normalizeCityName(city);
+    setSelectedCity(norm);
+    localStorage.setItem("selecto_selected_city", norm);
+  };
+
+  const list = offers.filter((o) => {
+    const offerCityNorm = normalizeCityName(o.city || "Ramallah").toLowerCase();
+    const selectedCityNorm = selectedCity.toLowerCase();
+    
+    const cityMatch = offerCityNorm.includes(selectedCityNorm) || selectedCityNorm.includes(offerCityNorm);
+    const categoryMatch = cat === "All" || o.category === cat;
+    const queryMatch = q === "" ||
+      o.name.toLowerCase().includes(q.toLowerCase()) ||
+      o.restaurant.toLowerCase().includes(q.toLowerCase());
+      
+    return cityMatch && categoryMatch && queryMatch;
+  });
 
   return (
     <div className="phone-frame relative flex min-h-screen select-none flex-col bg-background pb-20 font-sans text-foreground">
       <div className="relative z-10 rounded-b-[2rem] bg-gradient-to-b from-[#174d3d] to-[#123f34] px-5 pb-16 pt-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-col text-white">
-            <div className="flex items-center gap-1 opacity-90">
-              <MapPin className="size-3.5" />
-              <span className="text-xs font-semibold">رام الله</span>
+            <div className="flex items-center gap-1.5 opacity-95">
+              <MapPin className="size-3.5 text-emerald-400" />
+              <select
+                value={selectedCity}
+                onChange={(e) => handleCityChange(e.target.value)}
+                className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer border-none p-0 focus:ring-0 focus:outline-none"
+              >
+                {cities.map((city) => (
+                  <option key={city.value} value={city.value} className="bg-[#123f34] text-white">
+                    {city.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-1 mt-1">
               <h1 className="text-2xl font-black leading-none" dir="ltr">
@@ -119,9 +200,9 @@ function OffersPage() {
             
             {!loading && list.length === 0 && (
               <div className="py-16 text-center space-y-3 bg-gray-50 rounded-3xl p-8 border border-dashed border-gray-200 col-span-full">
-                <h3 className="text-sm font-bold text-gray-900">لا توجد عروض مطابقة</h3>
+                <h3 className="text-sm font-bold text-gray-900">لا توجد وجبات مخفضة متاحة في هذه المنطقة بعد.</h3>
                 <p className="text-xs text-gray-500">
-                  جرب البحث باسم آخر أو اختر تصنيف مختلف.
+                  سيلكتو قادم قريباً إلى المزيد من الأحياء والمطاعم! جرب اختيار مدينة أخرى.
                 </p>
               </div>
             )}

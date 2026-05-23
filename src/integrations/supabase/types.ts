@@ -112,6 +112,7 @@ export type Database = {
           map_url: string | null
           name: string
           owner_id: string | null
+          phone_number: string | null
           rating: number
         }
         Insert: {
@@ -125,6 +126,7 @@ export type Database = {
           map_url?: string | null
           name: string
           owner_id?: string | null
+          phone_number?: string | null
           rating?: number
         }
         Update: {
@@ -138,6 +140,7 @@ export type Database = {
           map_url?: string | null
           name?: string
           owner_id?: string | null
+          phone_number?: string | null
           rating?: number
         }
         Relationships: []
@@ -145,30 +148,45 @@ export type Database = {
       transactions: {
         Row: {
           commission_amount: number
+          commission_rate: number | null
           created_at: string
           customer_id: string
+          customer_total_price: number | null
           id: string
           offer_id: string
           restaurant_id: string
+          restaurant_payout: number | null
+          restaurant_price: number | null
           sale_amount: number
+          status: string | null
         }
         Insert: {
           commission_amount?: number
+          commission_rate?: number | null
           created_at?: string
           customer_id: string
+          customer_total_price?: number | null
           id?: string
           offer_id: string
           restaurant_id: string
+          restaurant_payout?: number | null
+          restaurant_price?: number | null
           sale_amount: number
+          status?: string | null
         }
         Update: {
           commission_amount?: number
+          commission_rate?: number | null
           created_at?: string
           customer_id?: string
+          customer_total_price?: number | null
           id?: string
           offer_id?: string
           restaurant_id?: string
+          restaurant_payout?: number | null
+          restaurant_price?: number | null
           sale_amount?: number
+          status?: string | null
         }
         Relationships: [
           {

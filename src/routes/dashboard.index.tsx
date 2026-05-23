@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { DollarSign, Percent, ShoppingBag, Store, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
-import { discountPct, fetchMyOffers, fetchMyRestaurant, type Offer } from "@/lib/offers-data";
+import { getMyRestaurantStats } from "@/lib/restaurant.functions";
+import { toast } from "sonner";
+import { fetchMyRestaurant } from "@/lib/offers-data";
 
 export const Route = createFileRoute("/dashboard/")({
   component: RestaurantOverview,
@@ -12,27 +13,21 @@ export const Route = createFileRoute("/dashboard/")({
 function RestaurantOverview() {
   const { user } = useAuth();
   const [restaurant, setRestaurant] = useState<any>(null);
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [stats, setStats] = useState({ orders: 0, sales: 0, commission: 0 });
+  const [stats, setStats] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const r = await fetchMyRestaurant(user.id);
-      setRestaurant(r);
-      if (r) {
-        const list = await fetchMyOffers(r.id);
-        setOffers(list);
-        const { data } = await supabase
-          .from("transactions")
-          .select("sale_amount, commission_amount")
-          .eq("restaurant_id", r.id);
-        const rows = (data ?? []) as { sale_amount: number; commission_amount: number }[];
-        setStats({
-          orders: rows.length,
-          sales: rows.reduce((s, t) => s + Number(t.sale_amount), 0),
-          commission: rows.reduce((s, t) => s + Number(t.commission_amount), 0),
-        });
+      try {
+        const r = await fetchMyRestaurant(user.id);
+        setRestaurant(r);
+        if (r) {
+          const res = await getMyRestaurantStats();
+          setStats(res);
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to load stats");
       }
     })();
   }, [user]);
@@ -67,32 +62,31 @@ function RestaurantOverview() {
 
       <h2 className="text-sm font-bold">Overview</h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat icon={Percent} label="Active Offers" value={String(offers.filter((o: any) => o.active !== false).length)} tint="bg-secondary text-primary" />
-        <Stat icon={ShoppingBag} label="Orders" value={String(stats.orders)} tint="bg-accent text-accent-foreground" />
-        <Stat icon={DollarSign} label="Sales" value={`$${stats.sales.toFixed(2)}`} tint="bg-secondary text-primary" />
-        <Stat icon={TrendingUp} label="Commission" value={`$${stats.commission.toFixed(2)}`} tint="bg-accent text-accent-foreground" />
+        <Stat icon={Percent} label="Active Offers" value={String(stats?.activeOffers || 0)} tint="bg-secondary text-primary" />
+        <Stat icon={ShoppingBag} label="Orders" value={String(stats?.totalOrders || 0)} tint="bg-accent text-accent-foreground" />
+        <Stat icon={DollarSign} label="Restaurant Payouts" value={`₪${(stats?.totalPayouts || 0).toFixed(2)}`} tint="bg-secondary text-primary" />
+        <Stat icon={TrendingUp} label="Selecto Commission" value={`₪${(stats?.totalCommissions || 0).toFixed(2)}`} tint="bg-accent text-accent-foreground" />
       </div>
 
       <section className="rounded-2xl bg-card p-4 shadow-card">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-bold">Current Offers</h2>
-          <Link to="/dashboard/offers" className="text-xs font-semibold text-primary">View all</Link>
+          <h2 className="text-sm font-bold">Recent Transactions</h2>
+          <Link to="/dashboard/orders" className="text-xs font-semibold text-primary">View all orders</Link>
         </div>
-        {offers.length === 0 ? (
+        {!stats || stats.recentTransactions.length === 0 ? (
           <p className="py-6 text-center text-xs text-muted-foreground">
-            No offers yet. <Link to="/dashboard/offers/new" className="font-semibold text-primary">Add your first offer</Link>.
+            No transactions yet.
           </p>
         ) : (
           <ul className="divide-y divide-border">
-            {offers.slice(0, 4).map((o) => (
-              <li key={o.id} className="flex items-center gap-3 py-2.5">
-                <img src={o.image} alt={o.name} loading="lazy" className="size-12 rounded-lg object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{o.name}</p>
-                  <p className="text-[11px] text-muted-foreground">Valid till {o.validUntil}</p>
+            {stats.recentTransactions.map((tx: any) => (
+              <li key={tx.created_at} className="flex items-center justify-between py-2.5">
+                <div>
+                  <p className="text-sm font-semibold">₪{Number(tx.customer_total_price || 0).toFixed(2)} Paid</p>
+                  <p className="text-[11px] text-muted-foreground">Payout: ₪{Number(tx.restaurant_payout || 0).toFixed(2)}</p>
                 </div>
-                <span className="rounded-md bg-discount px-2 py-0.5 text-[10px] font-bold text-discount-foreground">
-                  {discountPct(o)}% OFF
+                <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold">
+                  {tx.status || "Pending"}
                 </span>
               </li>
             ))}

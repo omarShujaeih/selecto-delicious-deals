@@ -1,7 +1,7 @@
-export function SelectoLogo({ size = 96 }: { size?: number }) {
+export function SelectoLogo({ size = 96, className = "" }: { size?: number; className?: string }) {
   return (
     <div
-      className="grid place-items-center rounded-[28%] bg-primary text-primary-foreground shadow-elevated"
+      className={`grid place-items-center rounded-[28%] bg-primary text-primary-foreground shadow-elevated ${className}`}
       style={{ width: size, height: size }}
     >
       <span

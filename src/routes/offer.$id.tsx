@@ -19,6 +19,18 @@ export const Route = createFileRoute("/offer/$id")({
   component: OfferDetails,
 });
 
+const arabicCities: Record<string, string> = {
+  Ramallah: "رام الله",
+  Nablus: "نابلس",
+  Hebron: "الخليل",
+  Bethlehem: "بيت لحم",
+  Jerusalem: "القدس",
+  Jenin: "جنين",
+  Tulkarm: "طولكرم",
+  Qalqilya: "قلقيلية",
+  Jericho: "أريحا",
+};
+
 function OfferDetails() {
   const { id } = Route.useParams();
   const router = useRouter();
@@ -30,10 +42,23 @@ function OfferDetails() {
   useCustomerGuard();
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log("Offer details timeout reached, forcing fallback");
+      setOffer(fallbackOffer(id) ?? null);
+      setLoading(false);
+    }, 3000);
+
     fetchOfferById(id)
-      .then((o) => setOffer(o ?? fallbackOffer(id) ?? null))
-      .catch(() => setOffer(fallbackOffer(id) ?? null))
-      .finally(() => setLoading(false));
+      .then((o) => {
+        setOffer(o ?? fallbackOffer(id) ?? null);
+      })
+      .catch(() => {
+        setOffer(fallbackOffer(id) ?? null);
+      })
+      .finally(() => {
+        clearTimeout(timeout);
+        setLoading(false);
+      });
   }, [id]);
 
   if (loading) {
@@ -65,7 +90,17 @@ function OfferDetails() {
   const pct = discountPct(offer);
   const saved = (offer.originalPrice - offer.discountedPrice).toFixed(0);
 
+  const displayCity = offer.city ? (arabicCities[offer.city] || offer.city) : "";
+  const displayArea = offer.area || "";
+  const locationString = displayCity && displayArea ? `${displayCity}، ${displayArea}` : (displayCity || "رام الله");
+
   function handleAddToCart() {
+    if (!offer) return;
+    if (!user) {
+      toast.info("الرجاء تسجيل الدخول أولاً لإتمام الحجز");
+      router.navigate({ to: "/auth", search: { redirect: `/offer/${offer.id}` } });
+      return;
+    }
     addItem(offer as any); // Cast to handle the restaurant_id property
     toast.success("تم إضافة الوجبة للسلة! 🛒");
   }
@@ -149,29 +184,47 @@ function OfferDetails() {
               <span className="font-extrabold text-foreground">{offer.rating || "4.8"}</span>
               <span className="text-muted-foreground/75">(140 تقييم)</span>
             </div>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-secondary text-primary">
-              📍 Al-Masyoun, Ramallah
+            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-secondary text-primary flex items-center gap-1">
+              <MapPin className="size-3" />
+              <span>{locationString} {offer.address ? `— ${offer.address}` : ""}</span>
             </span>
           </div>
         </div>
 
-        {/* Pricing Overview Row */}
-        <div className="glass-card rounded-2xl p-4 flex items-center justify-between border border-primary/5">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-muted-foreground">السعر بعد التخفيض</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="font-display text-3xl font-black text-[#124E3F] dark:text-[#E77B5D]">
-                ₪{offer.discountedPrice.toFixed(2)}
-              </span>
-              <span className="text-xs text-muted-foreground line-through font-semibold">
-                ₪{offer.originalPrice.toFixed(2)}
+        {/* Pricing Overview Row & Detailed Commission Table */}
+        <div className="glass-card rounded-2xl p-5 border border-primary/10 bg-white/70 space-y-4 shadow-[0_8px_24px_rgba(18,63,50,0.04)]">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-primary uppercase tracking-wider">السعر النهائي للعميل</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="font-display text-3xl font-black text-primary">
+                  ₪{offer.discountedPrice.toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground line-through font-bold">
+                  ₪{offer.originalPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-black text-discount bg-discount/10 px-3.5 py-1.5 rounded-full">
+                وفرت ₪{saved} ({pct}% خصم)
               </span>
             </div>
           </div>
-          <div className="text-right">
-            <span className="text-xs font-black text-discount bg-discount/10 px-3 py-1.5 rounded-full">
-              وفرت ₪{saved} ({pct}% خصم)
-            </span>
+
+          <div className="border-t border-border/80 pt-3.5 space-y-2 text-xs font-bold" dir="rtl">
+            <div className="flex justify-between text-gray-600">
+              <span>سعر الوجبة من المطعم:</span>
+              <span>₪{(offer.restaurantPrice || offer.discountedPrice / 1.2).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>رسوم خدمة سيلكتو (20%):</span>
+              <span>₪{(offer.discountedPrice - (offer.restaurantPrice || offer.discountedPrice / 1.2)).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-gray-900 border-t border-dashed border-border pt-2 text-sm font-black">
+              <span className="text-primary">الإجمالي المطلوب دفعه:</span>
+              <span className="text-primary">₪{offer.discountedPrice.toFixed(2)}</span>
+            </div>
           </div>
         </div>
 
@@ -192,7 +245,7 @@ function OfferDetails() {
             <Leaf className="size-4.5 text-primary fill-primary/10" />
             <h3 className="text-xs font-extrabold text-[#124E3F] dark:text-emerald-400 uppercase tracking-wider">ليش هذا العرض مناسب؟</h3>
           </div>
-          <p className="text-xs text-[#124E3F]/85 dark:text-emerald-300/80 leading-relaxed font-semibold">
+          <p className="text-xs text-[#124E3F]/85 dark:text-emerald-300/80 leading-relaxed font-semibold" dir="rtl">
             هذا العرض يعطيك وجبة مختارة من مطعم محلي بسعر أقل، مع توفير مباشر بقيمة <strong>₪{saved}</strong> من ميزانيتك وخصم بنسبة <strong>{pct}%</strong>.
           </p>
         </section>
@@ -247,7 +300,7 @@ function OfferDetails() {
         </button>
         {!user && (
           <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            يلزم <Link to="/auth" className="font-extrabold text-primary underline">تسجيل الدخول</Link> لتتمكن من إتمام الحجز الفعلي.
+            يلزم <Link to="/auth" search={{ redirect: `/offer/${offer.id}` }} className="font-extrabold text-primary underline">تسجيل الدخول</Link> لتتمكن من إتمام الحجز الفعلي.
           </p>
         )}
       </div>

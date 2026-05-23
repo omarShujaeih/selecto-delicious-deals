@@ -33,8 +33,12 @@ function Splash() {
   }, []);
 
   useEffect(() => {
-    if (showSplash || loading || !user) return;
-    nav({ to: isAdmin || isRestaurant ? "/dashboard" : "/offers" });
+    if (showSplash || loading) return;
+    if (!user) {
+      nav({ to: "/offers" });
+    } else {
+      nav({ to: isAdmin || isRestaurant ? "/dashboard" : "/offers" });
+    }
   }, [showSplash, loading, user, isAdmin, isRestaurant, nav]);
 
   return (

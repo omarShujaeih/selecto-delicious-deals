@@ -26,18 +26,27 @@ type DbOffer = {
   rating: number | null;
   active: boolean;
   restaurant_id: string;
-  restaurants?: { name: string; cuisine: string } | null;
+  restaurants?: { name: string; cuisine: string; city: string; address: string | null } | null;
 };
 
-export function mapOffer(o: DbOffer): Offer & { restaurant_id: string; active: boolean } {
+export function mapOffer(o: DbOffer): Offer & { restaurant_id: string; active: boolean; restaurantPrice: number; city: string; area: string; address: string } {
+  const restaurantPrice = Number(o.discounted_price);
+  const commission = restaurantPrice * 0.20;
+  const finalPrice = restaurantPrice + commission;
+
+  const fullAddress = o.restaurants?.address ?? "";
+  const addressParts = fullAddress.split(",");
+  const area = addressParts[0] ? addressParts[0].trim() : "Downtown";
+
   return {
     id: o.id,
     name: o.name,
     restaurant: o.restaurants?.name ?? "Restaurant",
     cuisine: o.cuisine ?? o.restaurants?.cuisine ?? "",
-    category: (o.category as Offer["category"]) ?? "Bowls",
+    category: o.category ?? "Bowls",
     originalPrice: Number(o.original_price),
-    discountedPrice: Number(o.discounted_price),
+    discountedPrice: finalPrice,
+    restaurantPrice: restaurantPrice,
     rating: Number(o.rating ?? 4.5),
     distanceKm: Number(o.distance_km ?? 1.5),
     prepMinutes: o.prep_minutes ?? "20-25 min",
@@ -47,13 +56,16 @@ export function mapOffer(o: DbOffer): Offer & { restaurant_id: string; active: b
     description: o.description ?? "",
     restaurant_id: o.restaurant_id,
     active: o.active,
+    city: o.restaurants?.city ?? "Ramallah",
+    area: area,
+    address: fullAddress,
   };
 }
 
 export async function fetchPublicOffers() {
   const { data, error } = await supabase
     .from("offers")
-    .select("*, restaurants(name, cuisine)")
+    .select("*, restaurants(name, cuisine, city, address)")
     .eq("active", true)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -63,7 +75,7 @@ export async function fetchPublicOffers() {
 export async function fetchOfferById(id: string) {
   const { data, error } = await supabase
     .from("offers")
-    .select("*, restaurants(name, cuisine)")
+    .select("*, restaurants(name, cuisine, city, address)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -88,7 +100,7 @@ export async function fetchMyRestaurant(userId: string) {
 export async function fetchMyOffers(restaurantId: string) {
   const { data, error } = await supabase
     .from("offers")
-    .select("*, restaurants(name, cuisine)")
+    .select("*, restaurants(name, cuisine, city, address)")
     .eq("restaurant_id", restaurantId)
     .order("created_at", { ascending: false });
   if (error) throw error;
