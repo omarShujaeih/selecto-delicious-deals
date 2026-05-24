@@ -24,7 +24,7 @@ type OfferRow = {
 function AdminManageOffers() {
   const toggleStatus = useServerFn(adminToggleOfferStatus);
   const deleteOffer = useServerFn(adminDeleteOffer);
-  
+
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<OfferRow[]>([]);
 
@@ -78,8 +78,8 @@ function AdminManageOffers() {
   }
 
   const list = rows.filter(
-    (r) => 
-      r.name.toLowerCase().includes(q.toLowerCase()) || 
+    (r) =>
+      r.name.toLowerCase().includes(q.toLowerCase()) ||
       r.restaurant_name.toLowerCase().includes(q.toLowerCase())
   );
 
@@ -115,7 +115,8 @@ function AdminManageOffers() {
           </thead>
           <tbody className="divide-y divide-border">
             {list.map((r) => {
-              const pct = r.original_price > 0 ? Math.round(((r.original_price - r.discounted_price) / r.original_price) * 100) : 0;
+              const customerPrice = r.discounted_price * 1.2;
+              const pct = r.original_price > 0 ? Math.round(((r.original_price - customerPrice) / r.original_price) * 100) : 0;
               return (
                 <tr key={r.id} className="hover:bg-muted/30">
                   <td className="px-5 py-4">
@@ -129,7 +130,8 @@ function AdminManageOffers() {
                     </div>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <p className="font-bold text-primary">₪{r.discounted_price.toFixed(2)}</p>
+                    <p className="font-bold text-primary">₪{(r.discounted_price * 1.2).toFixed(2)}</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground">Payout: ₪{r.discounted_price.toFixed(2)}</p>
                     <div className="flex items-center justify-end gap-1.5 text-[10px]">
                       <span className="line-through text-muted-foreground">₪{r.original_price.toFixed(2)}</span>
                       <span className="bg-primary/10 text-primary px-1 rounded font-bold">-{pct}%</span>
@@ -139,7 +141,7 @@ function AdminManageOffers() {
                     {r.pickup_time || "N/A"}
                   </td>
                   <td className="px-5 py-4 text-center">
-                    <button 
+                    <button
                       onClick={() => handleToggleStatus(r.id, r.active)}
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold transition-colors hover:brightness-110 ${r.active ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}
                     >
@@ -170,7 +172,8 @@ function AdminManageOffers() {
       {/* Mobile Card view */}
       <ul className="md:hidden space-y-3">
         {list.map((r) => {
-          const pct = r.original_price > 0 ? Math.round(((r.original_price - r.discounted_price) / r.original_price) * 100) : 0;
+          const customerPrice = r.discounted_price * 1.2;
+          const pct = r.original_price > 0 ? Math.round(((r.original_price - customerPrice) / r.original_price) * 100) : 0;
           return (
             <li key={r.id} className="rounded-2xl bg-card p-4 shadow-sm border border-border">
               <div className="flex items-start justify-between">
@@ -192,7 +195,7 @@ function AdminManageOffers() {
               <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3">
                 <div className="text-center">
                   <p className="text-[10px] uppercase text-muted-foreground">Price</p>
-                  <p className="font-bold text-primary">₪{r.discounted_price}</p>
+                  <p className="font-bold text-primary">₪{(r.discounted_price * 1.2).toFixed(2)}</p>
                 </div>
                 <div className="text-center border-l border-border">
                   <p className="text-[10px] uppercase text-muted-foreground">Pickup</p>
@@ -200,11 +203,11 @@ function AdminManageOffers() {
                 </div>
                 <div className="text-center border-l border-border">
                   <p className="text-[10px] uppercase text-muted-foreground mb-1">Status</p>
-                  <button 
-                      onClick={() => handleToggleStatus(r.id, r.active)}
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${r.active ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}
-                    >
-                      {r.active ? "Active" : "Inactive"}
+                  <button
+                    onClick={() => handleToggleStatus(r.id, r.active)}
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${r.active ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}
+                  >
+                    {r.active ? "Active" : "Inactive"}
                   </button>
                 </div>
               </div>

@@ -72,9 +72,33 @@ function DashboardOrders() {
                       ₪{(Number(tx.restaurant_payout) || 0).toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold">
-                        {tx.status || "Completed"}
-                      </span>
+                      <select
+                        value={tx.status || "Pending"}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          try {
+                            const { updateOrderStatus } = await import("@/lib/restaurant.functions");
+                            await updateOrderStatus({ data: { id: tx.id, status: newStatus } });
+                            setTransactions((prev) =>
+                              prev.map((t) => (t.id === tx.id ? { ...t, status: newStatus } : t))
+                            );
+                            toast.success("Status updated");
+                          } catch (err: any) {
+                            toast.error(err.message || "Failed to update status");
+                          }
+                        }}
+                        className={`rounded-md px-2 py-1 text-xs font-bold outline-none focus:ring-2 focus:ring-ring ${tx.status === "Pending" ? "bg-discount/10 text-discount" :
+                            tx.status === "Ready" ? "bg-warning/10 text-warning" :
+                              tx.status === "Completed" ? "bg-success/10 text-success" :
+                                "bg-secondary text-foreground"
+                          }`}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
                     </td>
                   </tr>
                 ))}

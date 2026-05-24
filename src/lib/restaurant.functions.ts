@@ -13,17 +13,17 @@ async function requireRestaurant(supabase: any, userId: string) {
     throw new Error("Unauthorized: Must be a restaurant");
   }
 
-  const { data: restaurant, error: restError } = await supabase
+  const { data: restaurants, error: restError } = await supabase
     .from("restaurants")
     .select("id")
     .eq("owner_id", userId)
-    .single();
+    .limit(1);
 
-  if (restError || !restaurant) {
+  if (restError || !restaurants || restaurants.length === 0) {
     throw new Error("Restaurant profile not found");
   }
 
-  return restaurant.id;
+  return restaurants[0].id;
 }
 
 export const getMyRestaurantStats = createServerFn({ method: "GET" })
@@ -35,7 +35,8 @@ export const getMyRestaurantStats = createServerFn({ method: "GET" })
     const { data: transactions, error: txError } = await sb
       .from("transactions")
       .select("restaurant_payout, customer_total_price, commission_amount, created_at, status")
-      .eq("restaurant_id", restaurantId);
+      .eq("restaurant_id", restaurantId)
+      .order("created_at", { ascending: false });
 
     if (txError) throw new Error(txError.message);
 
@@ -54,6 +55,20 @@ export const getMyRestaurantStats = createServerFn({ method: "GET" })
     const totalPayouts = transactions?.reduce((sum: number, tx: any) => sum + (Number(tx.restaurant_payout) || 0), 0) || 0;
     const totalCommissions = transactions?.reduce((sum: number, tx: any) => sum + (Number(tx.commission_amount) || 0), 0) || 0;
     const totalCustomerPayments = transactions?.reduce((sum: number, tx: any) => sum + (Number(tx.customer_total_price) || 0), 0) || 0;
+    const salesByDay = new Map<string, number>();
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const day = new Date(now);
+      day.setDate(now.getDate() - i);
+      salesByDay.set(day.toISOString().slice(0, 10), 0);
+    }
+
+    for (const tx of transactions ?? []) {
+      const key = new Date(tx.created_at).toISOString().slice(0, 10);
+      if (salesByDay.has(key)) {
+        salesByDay.set(key, (salesByDay.get(key) ?? 0) + (Number(tx.customer_total_price) || 0));
+      }
+    }
 
     return {
       totalOrders,
@@ -62,6 +77,7 @@ export const getMyRestaurantStats = createServerFn({ method: "GET" })
       totalCustomerPayments,
       totalOffers: offersCount || 0,
       activeOffers: activeOffersCount || 0,
+      salesTrend: Array.from(salesByDay.entries()).map(([day, sales]) => ({ day, sales })),
       recentTransactions: transactions?.slice(0, 5) || [],
     };
   });
@@ -83,6 +99,66 @@ export const getMyTransactions = createServerFn({ method: "GET" })
 
     if (error) throw new Error(error.message);
     return transactions || [];
+  });
+
+export const updateOrderStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    id: z.string().uuid(),
+    status: z.string().min(1),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const restaurantId = await requireRestaurant(sb, context.userId);
+
+    // Verify ownership
+    const { data: existing, error: fetchError } = await sb
+      .from("transactions")
+      .select("restaurant_id")
+      .eq("id", data.id)
+      .limit(1);
+
+    if (fetchError || !existing || existing.length === 0 || existing[0].restaurant_id !== restaurantId) {
+      throw new Error("Unauthorized to edit this transaction");
+    }
+
+    const { error } = await sb
+      .from("transactions")
+      .update({ status: data.status })
+      .eq("id", data.id);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const updateRestaurantProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    name: z.string().min(1),
+    cuisine: z.string().min(1),
+    city: z.string().min(1),
+    contact_email: z.string().email().optional().or(z.literal("")),
+    address: z.string().optional().or(z.literal("")),
+    map_url: z.string().url().optional().or(z.literal("")),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const restaurantId = await requireRestaurant(sb, context.userId);
+
+    const { error } = await sb
+      .from("restaurants")
+      .update({
+        name: data.name,
+        cuisine: data.cuisine,
+        city: data.city,
+        contact_email: data.contact_email || null,
+        address: data.address || null,
+        map_url: data.map_url || null,
+      })
+      .eq("id", restaurantId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
   });
 
 export const getMyOffers = createServerFn({ method: "GET" })
@@ -107,6 +183,7 @@ export const getMyOffers = createServerFn({ method: "GET" })
       originalPrice: Number(o.original_price),
       restaurantPrice: Number(o.discounted_price), // base payout
       discountedPrice: Number(o.discounted_price) * 1.20, // customer price
+      availableQuantity: Number(o.available_quantity ?? 10),
     }));
   });
 

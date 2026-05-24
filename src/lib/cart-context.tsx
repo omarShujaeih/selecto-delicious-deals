@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Offer } from "./sample-data";
+import type { Offer } from "./offers-data";
+import { MAX_CART_QUANTITY } from "./offers-data";
 
 export type CartItem = {
   offer: Offer;
@@ -45,12 +46,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = (offer: Offer, quantity = 1) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.offer.id === offer.id);
+      const maxQuantity = Math.min(offer.availableQuantity ?? MAX_CART_QUANTITY, MAX_CART_QUANTITY);
       if (existing) {
         return prev.map((i) =>
-          i.offer.id === offer.id ? { ...i, quantity: i.quantity + quantity } : i,
+          i.offer.id === offer.id ? { ...i, quantity: Math.min(i.quantity + quantity, maxQuantity) } : i,
         );
       }
-      return [...prev, { offer, quantity }];
+      return [...prev, { offer, quantity: Math.min(quantity, maxQuantity) }];
     });
   };
 
@@ -64,7 +66,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     setItems((prev) =>
-      prev.map((i) => (i.offer.id === offerId ? { ...i, quantity } : i)),
+      prev.map((i) => {
+        if (i.offer.id !== offerId) return i;
+        const maxQuantity = Math.min(i.offer.availableQuantity ?? MAX_CART_QUANTITY, MAX_CART_QUANTITY);
+        return { ...i, quantity: Math.min(quantity, maxQuantity) };
+      }),
     );
   };
 

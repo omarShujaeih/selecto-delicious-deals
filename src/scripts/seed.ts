@@ -163,11 +163,47 @@ async function runSeed() {
     active: true,
   }).select().single();
 
-  if (r1Err || r2Err) {
-    throw new Error(`Failed to seed restaurants: ${r1Err?.message || r2Err?.message}`);
+  const { data: rest3, error: r3Err } = await adminClient.from("restaurants").insert({
+    owner_id: adminUid,
+    name: "Al-Manara Pizza",
+    cuisine: "Italian",
+    city: "Al-Manara, Ramallah",
+    rating: 4.6,
+    active: true,
+  }).select().single();
+
+  const { data: rest4, error: r4Err } = await adminClient.from("restaurants").insert({
+    owner_id: adminUid,
+    name: "Rukab's Ice Cream",
+    cuisine: "Desserts",
+    city: "Downtown Ramallah",
+    rating: 4.9,
+    active: true,
+  }).select().single();
+
+  const { data: rest5, error: r5Err } = await adminClient.from("restaurants").insert({
+    owner_id: adminUid,
+    name: "Downtown Shawarma",
+    cuisine: "Arabic",
+    city: "Downtown Ramallah",
+    rating: 4.7,
+    active: true,
+  }).select().single();
+
+  const { data: rest6, error: r6Err } = await adminClient.from("restaurants").insert({
+    owner_id: adminUid,
+    name: "Baladna Kitchen",
+    cuisine: "Palestinian",
+    city: "Old City, Ramallah",
+    rating: 4.8,
+    active: true,
+  }).select().single();
+
+  if (r1Err || r2Err || r3Err || r4Err || r5Err || r6Err) {
+    throw new Error(`Failed to seed restaurants: ${r1Err?.message || r2Err?.message || r3Err?.message || r4Err?.message || r5Err?.message || r6Err?.message}`);
   }
 
-  console.log(`Restaurants created: Zamn Cafe (${rest1.id}), Rukab Street Burgers (${rest2.id})`);
+  console.log(`Restaurants created: Zamn Cafe (${rest1.id}), Rukab Street Burgers (${rest2.id}), Al-Manara Pizza (${rest3.id}), Rukab's Ice Cream (${rest4.id}), Downtown Shawarma (${rest5.id}), Baladna Kitchen (${rest6.id})`);
 
   console.log("Seeding local menu items / offers with specific pickup times...");
   // Seed Zamn Cafe offers
@@ -242,8 +278,84 @@ async function runSeed() {
     }
   ]).select();
 
-  if (oZamnErr || oBurgersErr) {
-    throw new Error(`Failed to seed offers: ${oZamnErr?.message || oBurgersErr?.message}`);
+  const { data: offersPizza, error: oPizzaErr } = await adminClient.from("offers").insert([
+    {
+      restaurant_id: rest3.id,
+      name: "Special Margherita Pizza",
+      description: "Stone-baked crispy sourdough crust, rich local tomato sauce, fresh buffalo mozzarella, and aromatic basil leaves.",
+      image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=800&q=80",
+      category: "Pizzas",
+      cuisine: "Italian",
+      original_price: 30.00,
+      discounted_price: 20.00,
+      valid_until: "Today, 10:30 PM",
+      prep_minutes: "15-20 min",
+      pickup_time: "4:00 PM - 6:30 PM",
+      distance_km: 0.5,
+      rating: 4.6,
+      active: true,
+    }
+  ]).select();
+
+  const { data: offersIceCream, error: oIceCreamErr } = await adminClient.from("offers").insert([
+    {
+      restaurant_id: rest4.id,
+      name: "Arabic Mastic Ice Cream Tub",
+      description: "Legendary Ramallah mastic ice cream with rich pistachios, stretchy texture, and authentic local flavor.",
+      image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80",
+      category: "Bowls",
+      cuisine: "Desserts",
+      original_price: 20.00,
+      discounted_price: 14.00,
+      valid_until: "Today, 11:00 PM",
+      prep_minutes: "5 min",
+      pickup_time: "12:00 PM - 10:00 PM",
+      distance_km: 1.1,
+      rating: 4.9,
+      active: true,
+    }
+  ]).select();
+
+  const { data: offersShawarma, error: oShawarmaErr } = await adminClient.from("offers").insert([
+    {
+      restaurant_id: rest5.id,
+      name: "Double Shawarma Meal",
+      description: "Tender sliced chicken shawarma wraps, toasted with local garlic toum, pickles, and crispy salted french fries.",
+      image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80",
+      category: "Burgers",
+      cuisine: "Arabic",
+      original_price: 28.00,
+      discounted_price: 20.00,
+      valid_until: "Today, 11:00 PM",
+      prep_minutes: "15-20 min",
+      pickup_time: "3:00 PM - 5:30 PM",
+      distance_km: 0.6,
+      rating: 4.7,
+      active: true,
+    }
+  ]).select();
+
+  const { data: offersFalafel, error: oFalafelErr } = await adminClient.from("offers").insert([
+    {
+      restaurant_id: rest6.id,
+      name: "Falafel & Hummus Platter",
+      description: "Crispy freshly-fried sesame falafel balls, smooth creamy chickpea hummus, pickles, and freshly-baked local pita bread.",
+      image: "https://images.unsplash.com/photo-1547058886-af77d0cf0c0d?auto=format&fit=crop&w=800&q=80",
+      category: "Bowls",
+      cuisine: "Palestinian",
+      original_price: 15.00,
+      discounted_price: 10.00,
+      valid_until: "Today, 9:00 PM",
+      prep_minutes: "10 min",
+      pickup_time: "8:00 AM - 12:00 PM",
+      distance_km: 0.9,
+      rating: 4.8,
+      active: true,
+    }
+  ]).select();
+
+  if (oZamnErr || oBurgersErr || oPizzaErr || oIceCreamErr || oShawarmaErr || oFalafelErr) {
+    throw new Error(`Failed to seed offers: ${oZamnErr?.message || oBurgersErr?.message || oPizzaErr?.message || oIceCreamErr?.message || oShawarmaErr?.message || oFalafelErr?.message}`);
   }
 
   console.log("Menu offers seeded successfully.");

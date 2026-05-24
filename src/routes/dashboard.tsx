@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { BarChart3, LayoutDashboard, ListChecks, PlusCircle, Shield, Store, ShoppingBag } from "lucide-react";
+import { BarChart3, LayoutDashboard, ListChecks, PlusCircle, Shield, Store, ShoppingBag, Settings } from "lucide-react";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 
@@ -37,6 +37,7 @@ const restaurantNav = [
   { to: "/dashboard/offers/new", label: "Add Item", icon: PlusCircle },
   { to: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
   { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 const adminNav = [
@@ -149,9 +150,8 @@ function NavGroup({
             <li key={it.to} className="shrink-0">
               <Link
                 to={it.to}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition ${
-                  active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
-                }`}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition ${active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
+                  }`}
               >
                 <it.icon className="size-4" />
                 {it.label}

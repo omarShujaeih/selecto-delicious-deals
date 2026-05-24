@@ -1,25 +1,44 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Clock, Heart, MapPin, Share2, Star, ShieldAlert, Sparkles, Leaf, Info, HelpCircle } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Heart,
+  MapPin,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Star,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { discountPct, fallbackOfferById as fallbackOffer, type Offer } from "@/lib/offers-data";
-import { useFavorites } from "@/lib/favorites";
-import { fetchOfferById } from "@/lib/offers-data";
-import { supabase } from "@/integrations/supabase/client";
+
+import { BottomNav } from "@/components/layout/BottomNav";
+import { withTimeout } from "@/lib/async-timeout";
 import { useAuth, useCustomerGuard } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
+import { useFavorites } from "@/lib/favorites";
+import {
+  discountPct,
+  fetchOfferById,
+  formatILS,
+  MAX_CART_QUANTITY,
+  type Offer,
+} from "@/lib/offers-data";
 
 export const Route = createFileRoute("/offer/$id")({
   head: () => ({
     meta: [
-      { title: "تفاصيل العرض — Selecto" },
-      { name: "description", content: "احصل على خصمك ووفر المال اليوم مع Selecto." },
+      { title: "تفاصيل العرض | Selecto" },
+      {
+        name: "description",
+        content: "راجع تفاصيل الوجبة واحجزها عبر Selecto.",
+      },
     ],
   }),
-  component: OfferDetails,
+  component: OfferDetailsPage,
 });
 
-const arabicCities: Record<string, string> = {
+const cityLabels: Record<string, string> = {
   Ramallah: "رام الله",
   Nablus: "نابلس",
   Hebron: "الخليل",
@@ -31,323 +50,246 @@ const arabicCities: Record<string, string> = {
   Jericho: "أريحا",
 };
 
-function OfferDetails() {
+function OfferDetailsPage() {
   const { id } = Route.useParams();
   const router = useRouter();
-  const { toggle, has } = useFavorites();
   const { user } = useAuth();
   const { addItem } = useCart();
-  const [offer, setOffer] = useState<(Offer & { restaurant_id?: string }) | null>(null);
+  const { has, toggle } = useFavorites();
+  const [offer, setOffer] = useState<(Offer & { restaurant_id?: string }) | null>(
+    null,
+  );
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useCustomerGuard();
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.log("Offer details timeout reached, forcing fallback");
-      setOffer(fallbackOffer(id) ?? null);
-      setLoading(false);
-    }, 3000);
+    let active = true;
 
-    fetchOfferById(id)
-      .then((o) => {
-        setOffer(o ?? fallbackOffer(id) ?? null);
+    withTimeout(fetchOfferById(id), 8000, "Loading offer")
+      .then((data) => {
+        if (!active) return;
+        setOffer(data);
+        setError(data ? null : "هذا العرض غير متوفر حالياً.");
       })
       .catch(() => {
-        setOffer(fallbackOffer(id) ?? null);
+        if (!active) return;
+        setError("تعذر تحميل تفاصيل العرض.");
       })
       .finally(() => {
-        clearTimeout(timeout);
-        setLoading(false);
+        if (active) setLoading(false);
       });
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="phone-frame flex flex-col justify-center items-center p-8 bg-background min-h-screen gap-3">
-        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-        <p className="text-xs text-muted-foreground font-semibold">جاري تحميل تفاصيل الصفقة...</p>
-      </div>
-    );
-  }
-
+  if (loading) return <PageState title="جاري تحميل تفاصيل العرض..." />;
   if (!offer) {
     return (
-      <div className="phone-frame flex flex-col justify-center items-center p-8 text-center bg-background min-h-screen gap-4">
-        <span className="text-5xl">🕵️‍♀️</span>
-        <h2 className="text-lg font-black">العرض غير متوفر حالياً</h2>
-        <p className="text-xs text-muted-foreground px-4">يبدو أن العرض قد نفذ أو تم حذفه من قبل إدارة المطعم.</p>
-        <button
-          onClick={() => router.navigate({ to: "/offers" })}
-          className="px-6 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl text-xs shadow-card"
-        >
-          العودة لتصفح العروض
-        </button>
-      </div>
+      <PageState
+        title={error || "العرض غير متوفر"}
+        actionLabel="العودة للعروض"
+      />
     );
   }
 
-  const fav = has(offer.id);
-  const pct = discountPct(offer);
-  const saved = (offer.originalPrice - offer.discountedPrice).toFixed(0);
+  const maxQuantity = Math.min(
+    offer.availableQuantity ?? MAX_CART_QUANTITY,
+    MAX_CART_QUANTITY,
+  );
+  const favorite = has(offer.id);
+  const location = offer.city ? cityLabels[offer.city] || offer.city : "قريب منك";
 
-  const displayCity = offer.city ? (arabicCities[offer.city] || offer.city) : "";
-  const displayArea = offer.area || "";
-  const locationString = displayCity && displayArea ? `${displayCity}، ${displayArea}` : (displayCity || "رام الله");
-
-  function handleAddToCart() {
+  function addToCart() {
     if (!offer) return;
+
     if (!user) {
-      toast.info("الرجاء تسجيل الدخول أولاً لإتمام الحجز");
-      router.navigate({ to: "/auth", search: { redirect: `/offer/${offer.id}` } });
+      toast.info("سجل دخولك لإتمام الحجز.");
+      router.navigate({
+        to: "/auth",
+        search: { redirect: `/offer/${offer.id}` },
+      });
       return;
     }
-    addItem(offer as any); // Cast to handle the restaurant_id property
-    toast.success("تم إضافة الوجبة للسلة! 🛒");
+
+    addItem(offer, quantity);
+    toast.success("تمت إضافة الوجبة للسلة.");
+    router.navigate({ to: "/cart" });
   }
 
   return (
-    <div className="phone-frame flex flex-col bg-background min-h-screen text-foreground select-none relative">
-      
-      {/* Top Banner Cover Image */}
-      <div className="relative h-80 w-full overflow-hidden shrink-0">
-        <img 
-          src={offer.image} 
-          alt={offer.name} 
-          className="h-full w-full object-cover animate-fade-in duration-1000" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-black/10 to-black/40" />
+    <div className="phone-frame min-h-screen bg-background pb-24 text-foreground">
+      <header className="relative h-[360px] overflow-hidden bg-primary">
+        <img src={offer.image} alt={offer.name} className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/35" />
 
-        {/* Back and Utility Header Buttons */}
-        <div className="absolute left-4 right-4 top-4 flex items-center justify-between z-10">
+        <div className="safe-top absolute inset-x-0 top-0 flex items-center justify-between px-5">
           <button
-            onClick={() => router.navigate({ to: "/offers" })}
-            className="grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white hover:bg-white/35 hover:scale-105 active:scale-95 transition"
-            aria-label="Back"
+            type="button"
+            onClick={() => router.history.back()}
+            className="grid size-11 place-items-center rounded-2xl bg-white/16 text-white backdrop-blur"
+            aria-label="رجوع"
           >
-            <ArrowLeft className="size-5" />
+            <ArrowRight className="size-5" />
           </button>
-          
-          <div className="flex gap-2">
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                toast.success("تم نسخ رابط العرض لمشاركته! 🔗");
-              }}
-              className="grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white hover:bg-white/35 hover:scale-105 active:scale-95 transition" 
-              aria-label="Share"
-            >
-              <Share2 className="size-4" />
-            </button>
-            <button
-              onClick={() => {
-                if (!user) {
-                  toast.error("الرجاء تسجيل الدخول أولاً لحفظ المفضلة");
-                  router.navigate({ to: "/auth" });
-                  return;
-                }
-                toggle(offer.id);
-                if (fav) {
-                  toast.success("تمت الإزالة من المفضلة");
-                } else {
-                  toast.success("تم الحفظ في المفضلة! 💚");
-                }
-              }}
-              className="grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white hover:bg-white/35 hover:scale-105 active:scale-95 transition"
-              aria-label="Save"
-            >
-              <Heart className={`size-4 ${fav ? "fill-discount text-discount" : "text-white"}`} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!user) {
+                toast.info("سجل دخولك لحفظ العرض.");
+                router.navigate({ to: "/auth" });
+                return;
+              }
+              toggle(offer.id);
+              toast.success(
+                favorite ? "تمت الإزالة من المفضلة" : "تم الحفظ في المفضلة",
+              );
+            }}
+            className="grid size-11 place-items-center rounded-2xl bg-white/16 text-white backdrop-blur"
+            aria-label="المفضلة"
+          >
+            <Heart
+              className={`size-5 ${favorite ? "fill-discount text-discount" : ""}`}
+            />
+          </button>
         </div>
 
-        {/* Floating Urgency Tag */}
-        <span className="absolute right-4 bottom-5 bg-discount text-white text-[11px] font-black px-3.5 py-1.5 rounded-full shadow-md z-10 animate-bounce">
-          🏃‍♂️ بقي عدد محدود جداً!
-        </span>
-      </div>
-
-      {/* Main Details Body */}
-      <main className="flex-1 space-y-6 px-5 pt-4 pb-28">
-        
-        {/* Deal Header Title */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-1.5 text-xs text-primary font-bold">
-            <span>🏡 {offer.restaurant}</span>
-            <span>•</span>
+        <div className="absolute inset-x-0 bottom-0 space-y-3 p-5 text-white" dir="rtl">
+          <div className="flex items-center gap-2 text-xs font-black text-white/85">
+            <span>{offer.restaurant}</span>
+            <span className="size-1 rounded-full bg-white/50" />
             <span>{offer.cuisine}</span>
           </div>
-          <h1 className="font-display text-2xl font-black leading-tight tracking-tight text-foreground">{offer.name}</h1>
-          
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-xs">
-              <Star className="size-4 fill-amber-400 text-amber-400" />
-              <span className="font-extrabold text-foreground">{offer.rating || "4.8"}</span>
-              <span className="text-muted-foreground/75">(140 تقييم)</span>
-            </div>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-secondary text-primary flex items-center gap-1">
-              <MapPin className="size-3" />
-              <span>{locationString} {offer.address ? `— ${offer.address}` : ""}</span>
-            </span>
-          </div>
+          <h1 className="font-display text-3xl font-black leading-tight">
+            {offer.name}
+          </h1>
         </div>
+      </header>
 
-        {/* Pricing Overview Row & Detailed Commission Table */}
-        <div className="glass-card rounded-2xl p-5 border border-primary/10 bg-white/70 space-y-4 shadow-[0_8px_24px_rgba(18,63,50,0.04)]">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-primary uppercase tracking-wider">السعر النهائي للعميل</span>
-              <div className="flex items-baseline gap-2 mt-0.5">
+      <main className="space-y-5 px-5 pt-5" dir="rtl">
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black text-muted-foreground">
+                السعر النهائي
+              </p>
+              <div className="mt-1 flex items-baseline gap-2">
                 <span className="font-display text-3xl font-black text-primary">
-                  ₪{offer.discountedPrice.toFixed(2)}
+                  {formatILS(offer.discountedPrice)}
                 </span>
-                <span className="text-sm text-muted-foreground line-through font-bold">
-                  ₪{offer.originalPrice.toFixed(2)}
+                <span className="text-sm font-bold text-muted-foreground line-through">
+                  {formatILS(offer.originalPrice)}
                 </span>
               </div>
             </div>
-            <div className="text-right">
-              <span className="text-xs font-black text-discount bg-discount/10 px-3.5 py-1.5 rounded-full">
-                وفرت ₪{saved} ({pct}% خصم)
-              </span>
-            </div>
-          </div>
-
-          <div className="border-t border-border/80 pt-3.5 space-y-2 text-xs font-bold" dir="rtl">
-            <div className="flex justify-between text-gray-600">
-              <span>سعر الوجبة من المطعم:</span>
-              <span>₪{(offer.restaurantPrice || offer.discountedPrice / 1.2).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span>رسوم خدمة سيلكتو (20%):</span>
-              <span>₪{(offer.discountedPrice - (offer.restaurantPrice || offer.discountedPrice / 1.2)).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-gray-900 border-t border-dashed border-border pt-2 text-sm font-black">
-              <span className="text-primary">الإجمالي المطلوب دفعه:</span>
-              <span className="text-primary">₪{offer.discountedPrice.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Dynamic Quantity Stock Visualizer */}
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center text-xs font-bold">
-            <span className="text-discount">عجل! بقي 2 فقط</span>
-            <span className="text-muted-foreground">مخزون الوجبة المتاح اليوم</span>
-          </div>
-          <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-discount rounded-full w-1/4 animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* Discount value card */}
-        <section className="bg-emerald-50 dark:bg-emerald-950/20 border border-primary/10 rounded-[1.75rem] p-4.5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Leaf className="size-4.5 text-primary fill-primary/10" />
-            <h3 className="text-xs font-extrabold text-[#124E3F] dark:text-emerald-400 uppercase tracking-wider">ليش هذا العرض مناسب؟</h3>
-          </div>
-          <p className="text-xs text-[#124E3F]/85 dark:text-emerald-300/80 leading-relaxed font-semibold" dir="rtl">
-            هذا العرض يعطيك وجبة مختارة من مطعم محلي بسعر أقل، مع توفير مباشر بقيمة <strong>₪{saved}</strong> من ميزانيتك وخصم بنسبة <strong>{pct}%</strong>.
-          </p>
-        </section>
-
-        {/* Meta Info Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <InfoCard icon={Clock} title={offer.pickupTime || "اليوم"} sub="نافذة الاستلام" />
-          <InfoCard icon={MapPin} title={`${offer.distanceKm} كم مجاور`} sub="المسافة الجغرافية" />
-          <InfoCard icon={Clock} title="اليوم فقط" sub="صلاحية العرض" />
-          <InfoCard icon={HelpCircle} title="وجبة عائلية" sub="حجم الحصة المقدر" />
-        </div>
-
-        {/* Description */}
-        <div className="space-y-2">
-          <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">تفاصيل الوجبة</h3>
-          <p className="text-xs font-semibold leading-relaxed text-muted-foreground/90 leading-relaxed text-right" dir="rtl">
-            {offer.description || "وجبة لذيذة بخصم خاص من المطعم، متاحة ضمن وقت الاستلام المحدد وبسعر ممتاز."}
-          </p>
-        </div>
-
-        {/* Interactive "How it Works" Onboarding Timeline */}
-        <section className="space-y-4 pt-2">
-          <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">خطوات الحصول على عرضك</h3>
-          <div className="space-y-3">
-            <TimelineStep 
-              num="1" 
-              title="احجز صفقاتك وادفع رقمياً" 
-              desc="أكد حجز وجبتك عبر Selecto لضمان استلامها قبل نفاد الكمية." 
-            />
-            <TimelineStep 
-              num="2" 
-              title="استلم الوجبة في الوقت المحدد" 
-              desc={`اذهب إلى المطعم خلال نافذة الاستلام (${offer.pickupTime || "المحددة"}) وأظهر لهم الفاتورة.`} 
-            />
-            <TimelineStep 
-              num="3" 
-              title="استمتع بوجبتك ووفّر أكثر" 
-              desc="أكل لذيذ من مطعمك المفضل بسعر أقل وتجربة طلب واضحة وسريعة." 
-            />
+            <span className="rounded-full bg-discount/10 px-3 py-1.5 text-xs font-black text-discount">
+              خصم {discountPct(offer)}%
+            </span>
           </div>
         </section>
 
+        <section className="grid grid-cols-2 gap-3">
+          <InfoCard icon={Clock} label="وقت الاستلام" value={offer.pickupTime || "يحدده المطعم"} />
+          <InfoCard icon={MapPin} label="الموقع" value={location} />
+          <InfoCard icon={ShoppingBag} label="الكمية المتاحة" value={`${maxQuantity} وجبات`} />
+          <InfoCard icon={Star} label="التقييم" value={`${offer.rating || 4.5}`} />
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="font-display text-lg font-black">تفاصيل الوجبة</h2>
+          <p className="mt-2 text-sm font-semibold leading-7 text-muted-foreground">
+            {offer.description ||
+              "وجبة مختارة من مطعم محلي، متاحة ضمن وقت الاستلام المحدد وبسعر نهائي واضح."}
+          </p>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-black">الكمية</p>
+              <p className="text-xs font-bold text-muted-foreground">
+                الحد الأقصى {maxQuantity}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 rounded-full bg-secondary px-2 py-1">
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="grid size-8 place-items-center rounded-full bg-card text-primary"
+              >
+                <Minus className="size-4" />
+              </button>
+              <span className="w-6 text-center text-sm font-black">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+                disabled={quantity >= maxQuantity}
+                className="grid size-8 place-items-center rounded-full bg-card text-primary disabled:opacity-40"
+              >
+                <Plus className="size-4" />
+              </button>
+            </div>
+          </div>
+        </section>
       </main>
 
-      {/* Floating Sticky Bottom Pulse Order Bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/90 backdrop-blur px-5 py-4 z-40 max-w-[430px] mx-auto">
+      <div className="safe-bottom fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[1200px] border-t border-border bg-background/95 px-5 pt-3 backdrop-blur">
         <button
-          onClick={handleAddToCart}
-          className="flex w-full items-center justify-center rounded-2xl bg-primary py-4 text-sm font-black text-primary-foreground shadow-elevated transition hover:bg-primary-glow active:scale-95 animate-pulse-glow"
+          type="button"
+          onClick={addToCart}
+          className="flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-4 text-sm font-black text-primary-foreground shadow-card"
         >
-          أضف إلى السلة • ₪{offer.discountedPrice.toFixed(2)}
+          <span>أضف إلى السلة</span>
+          <span>{formatILS(offer.discountedPrice * quantity)}</span>
         </button>
-        {!user && (
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            يلزم <Link to="/auth" search={{ redirect: `/offer/${offer.id}` }} className="font-extrabold text-primary underline">تسجيل الدخول</Link> لتتمكن من إتمام الحجز الفعلي.
-          </p>
-        )}
       </div>
 
+      <BottomNav />
     </div>
   );
 }
 
 function InfoCard({
   icon: Icon,
-  title,
-  sub,
+  label,
+  value,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  sub: string;
+  label: string;
+  value: string;
 }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-2xl bg-card border border-border/60 p-3 shadow-sm hover:scale-102 hover:border-primary/10 transition-all">
-      <div className="p-1.5 rounded-lg bg-secondary text-primary shrink-0">
-        <Icon className="size-4" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[10px] text-muted-foreground leading-none">{sub}</div>
-        <div className="font-bold text-xs text-foreground truncate mt-1">{title}</div>
-      </div>
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <Icon className="size-4 text-primary" />
+      <p className="mt-3 text-[11px] font-black text-muted-foreground">{label}</p>
+      <p className="mt-1 truncate text-sm font-black text-foreground">{value}</p>
     </div>
   );
 }
 
-function TimelineStep({
-  num,
+function PageState({
   title,
-  desc,
+  actionLabel,
 }: {
-  num: string;
   title: string;
-  desc: string;
+  actionLabel?: string;
 }) {
   return (
-    <div className="flex gap-3">
-      <div className="size-7 rounded-full bg-secondary border border-primary/20 text-primary font-black text-xs flex items-center justify-center shrink-0">
-        {num}
-      </div>
-      <div className="space-y-0.5 text-right flex-1" dir="rtl">
-        <h4 className="text-xs font-black text-foreground">{title}</h4>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">{desc}</p>
+    <div className="phone-frame grid min-h-screen place-items-center bg-background px-6 text-center">
+      <div>
+        <p className="text-sm font-black text-muted-foreground">{title}</p>
+        {actionLabel && (
+          <Link
+            to="/offers"
+            className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground"
+          >
+            {actionLabel}
+          </Link>
+        )}
       </div>
     </div>
   );

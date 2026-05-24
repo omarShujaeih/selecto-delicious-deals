@@ -18,7 +18,18 @@ export const Route = createFileRoute("/portal")({
 
 function PartnerPortalPage() {
   const navigate = useNavigate();
-  const { user, loading, isAdmin, isRestaurant, isCustomer, roles } = useAuth();
+  const {
+    user,
+    loading,
+    roles,
+    rolesLoaded,
+    roleError,
+    isAdmin,
+    isRestaurant,
+    isCustomer,
+    refreshRoles,
+    signOut,
+  } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -28,7 +39,7 @@ function PartnerPortalPage() {
   useEffect(() => {
     if (loading) return;
     if (user) {
-      if (roles.length === 0) {
+      if (!rolesLoaded && roles.length === 0) {
         console.log("[Portal] Roles array is still empty, waiting...");
         return; // Wait for fetchRoles to finish!
       }
@@ -40,11 +51,11 @@ function PartnerPortalPage() {
         console.log("[Portal] Logged in as customer. Redirecting to offers with warning...");
         toast.error("Customer accounts should use the customer app. / حسابات الزبائن يجب أن تستخدم تطبيق الزبائن.");
         navigate({ to: "/offers" });
-      } else {
-        setErr(`Unknown role. Access denied. / لم يتم التعرف على الصلاحيات. Roles: ${JSON.stringify(roles)}`);
+      } else if (rolesLoaded) {
+        setErr(roleError ?? `Unknown role. Access denied. Roles: ${JSON.stringify(roles)}`);
       }
     }
-  }, [user, loading, isAdmin, isRestaurant, isCustomer, roles, navigate]);
+  }, [user, loading, rolesLoaded, roleError, isAdmin, isRestaurant, isCustomer, roles, navigate]);
 
   // Autofill helper
   function fillDemo(demoEmail: string) {
@@ -134,6 +145,24 @@ function PartnerPortalPage() {
           {err && (
             <div className="p-3.5 rounded-xl bg-discount/10 border border-discount/20 text-xs font-semibold text-discount text-center leading-relaxed">
               {err}
+              {user && rolesLoaded && !isAdmin && !isRestaurant && !isCustomer && (
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => refreshRoles()}
+                    className="flex-1 rounded-full border border-border bg-background px-3 py-2 text-xs font-bold text-foreground"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => signOut()}
+                    className="flex-1 rounded-full bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

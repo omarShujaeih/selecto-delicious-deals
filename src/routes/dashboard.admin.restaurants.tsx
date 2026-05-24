@@ -129,7 +129,7 @@ function ManageRestaurants() {
             <h2 className="text-lg font-extrabold">New Restaurant Registration</h2>
             <p className="text-xs text-muted-foreground">Creates an owner account and a restaurant profile.</p>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Restaurant Info</h3>
@@ -137,9 +137,9 @@ function ManageRestaurants() {
               <In label="Cuisine Type" value={form.cuisine} onChange={(v) => setForm({ ...form, cuisine: v })} required />
               <div className="space-y-1">
                 <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Area (Ramallah)</span>
-                <select 
+                <select
                   className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-                  value={form.area} 
+                  value={form.area}
                   onChange={(e) => setForm({ ...form, area: e.target.value })}
                 >
                   {RAMALLAH_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
@@ -218,7 +218,7 @@ function ManageRestaurants() {
                 <td className="px-5 py-4">
                   <p className="font-medium text-foreground">{r.city}</p>
                   <p className="text-xs text-muted-foreground">{r.contact_email}</p>
-                  {r.phone_number && <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5"><Phone className="size-3"/> {r.phone_number}</p>}
+                  {r.phone_number && <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5"><Phone className="size-3" /> {r.phone_number}</p>}
                 </td>
                 <td className="px-5 py-4 text-center font-bold text-foreground">{r.itemCount}</td>
                 <td className="px-5 py-4 text-right font-bold text-primary">₪{r.totalSales.toFixed(2)}</td>

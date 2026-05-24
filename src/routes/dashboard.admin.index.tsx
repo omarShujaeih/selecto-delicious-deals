@@ -21,7 +21,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
-export const Route = createFileRoute("/dashboard/admin")({
+export const Route = createFileRoute("/dashboard/admin/")({
   component: () => <ErrorBoundary><AdminOverview /></ErrorBoundary>,
 });
 
@@ -143,7 +143,7 @@ function AdminOverview() {
           <h2 className="text-lg font-extrabold">Recent Transactions</h2>
           <p className="text-xs text-muted-foreground">Last 50 recorded platform orders.</p>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-secondary/50 text-xs text-muted-foreground">

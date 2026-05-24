@@ -1,36 +1,34 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
+  HeadContent,
   Link,
+  Outlet,
+  Scripts,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
-import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <div className="grid min-h-screen place-items-center bg-background px-6 text-center">
+      <div className="max-w-sm">
+        <h1 className="font-display text-7xl font-black text-primary">404</h1>
+        <h2 className="mt-4 text-xl font-black text-foreground">الصفحة غير موجودة</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          الرابط غير صحيح أو تم نقل الصفحة.
         </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+        <Link
+          to="/offers"
+          className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground shadow-card"
+        >
+          العودة للعروض
+        </Link>
       </div>
     </div>
   );
@@ -40,25 +38,25 @@ function ErrorComponent() {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-2xl font-bold text-foreground">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong. Try refreshing or head back home.
+    <div className="grid min-h-screen place-items-center bg-background px-6 text-center">
+      <div className="max-w-sm">
+        <h1 className="font-display text-2xl font-black text-foreground">تعذر تحميل الصفحة</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          حدث خطأ مؤقت. جرب التحديث أو ارجع للعروض.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex justify-center gap-2">
           <button
             type="button"
             onClick={() => router.invalidate()}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="rounded-xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground"
           >
-            Try again
+            إعادة المحاولة
           </button>
           <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+            to="/offers"
+            className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground"
           >
-            Go home
+            العروض
           </Link>
         </div>
       </div>
@@ -72,19 +70,19 @@ export const Route = createRootRouteWithContext<{
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#123f32" },
-      { title: "Selecto | خصومات المطاعم" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Selecto" },
+      { title: "Selecto | عروض المطاعم" },
       {
         name: "description",
-        content:
-          "اكتشف عروض وخصومات يومية على وجبات مختارة من أفضل المطاعم حولك.",
+        content: "اكتشف عروض يومية على وجبات مختارة من مطاعم محلية قريبة منك.",
       },
-      { property: "og:title", content: "Selecto | خصومات المطاعم" },
-      {
-        property: "og:description",
-        content: "عروض يومية من مطاعم محلية على Selecto.",
-      },
+      { property: "og:title", content: "Selecto | عروض المطاعم" },
+      { property: "og:description", content: "عروض يومية من مطاعم محلية على Selecto." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -95,6 +93,9 @@ export const Route = createRootRouteWithContext<{
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icons/selecto-icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icons/selecto-icon.svg" },
       { rel: "stylesheet", href: appCss },
     ],
   }),

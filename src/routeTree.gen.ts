@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -24,15 +25,21 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardOrdersRouteImport } from './routes/dashboard.orders'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
-import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as DashboardOffersIndexRouteImport } from './routes/dashboard.offers.index'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard.admin.index'
 import { Route as DashboardOffersNewRouteImport } from './routes/dashboard.offers.new'
 import { Route as DashboardAdminRestaurantsRouteImport } from './routes/dashboard.admin.restaurants'
 import { Route as DashboardAdminOffersRouteImport } from './routes/dashboard.admin.offers'
 import { Route as DashboardOffersEditIdRouteImport } from './routes/dashboard.offers.edit.$id'
 
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -108,6 +115,11 @@ const OfferIdRoute = OfferIdRouteImport.update({
   path: '/offer/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardOrdersRoute = DashboardOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -118,14 +130,14 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminRoute = DashboardAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardOffersIndexRoute = DashboardOffersIndexRouteImport.update({
   id: '/offers/',
   path: '/offers/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardOffersNewRoute = DashboardOffersNewRouteImport.update({
@@ -135,14 +147,14 @@ const DashboardOffersNewRoute = DashboardOffersNewRouteImport.update({
 } as any)
 const DashboardAdminRestaurantsRoute =
   DashboardAdminRestaurantsRouteImport.update({
-    id: '/restaurants',
-    path: '/restaurants',
-    getParentRoute: () => DashboardAdminRoute,
+    id: '/admin/restaurants',
+    path: '/admin/restaurants',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAdminOffersRoute = DashboardAdminOffersRouteImport.update({
-  id: '/offers',
-  path: '/offers',
-  getParentRoute: () => DashboardAdminRoute,
+  id: '/admin/offers',
+  path: '/admin/offers',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardOffersEditIdRoute = DashboardOffersEditIdRouteImport.update({
   id: '/offers/edit/$id',
@@ -164,14 +176,16 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/support': typeof SupportRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/offer/$id': typeof OfferIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/admin/offers': typeof DashboardAdminOffersRoute
   '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
   '/dashboard/offers/new': typeof DashboardOffersNewRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/offers/': typeof DashboardOffersIndexRoute
   '/dashboard/offers/edit/$id': typeof DashboardOffersEditIdRoute
 }
@@ -188,14 +202,16 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/support': typeof SupportRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/offer/$id': typeof OfferIdRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/admin/offers': typeof DashboardAdminOffersRoute
   '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
   '/dashboard/offers/new': typeof DashboardOffersNewRoute
+  '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/offers': typeof DashboardOffersIndexRoute
   '/dashboard/offers/edit/$id': typeof DashboardOffersEditIdRoute
 }
@@ -214,14 +230,16 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
+  '/support': typeof SupportRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/offer/$id': typeof OfferIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/admin/offers': typeof DashboardAdminOffersRoute
   '/dashboard/admin/restaurants': typeof DashboardAdminRestaurantsRoute
   '/dashboard/offers/new': typeof DashboardOffersNewRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/offers/': typeof DashboardOffersIndexRoute
   '/dashboard/offers/edit/$id': typeof DashboardOffersEditIdRoute
 }
@@ -241,14 +259,16 @@ export interface FileRouteTypes {
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
-    | '/dashboard/admin'
+    | '/support'
     | '/dashboard/analytics'
     | '/dashboard/orders'
+    | '/dashboard/settings'
     | '/offer/$id'
     | '/dashboard/'
     | '/dashboard/admin/offers'
     | '/dashboard/admin/restaurants'
     | '/dashboard/offers/new'
+    | '/dashboard/admin/'
     | '/dashboard/offers/'
     | '/dashboard/offers/edit/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -265,14 +285,16 @@ export interface FileRouteTypes {
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
-    | '/dashboard/admin'
+    | '/support'
     | '/dashboard/analytics'
     | '/dashboard/orders'
+    | '/dashboard/settings'
     | '/offer/$id'
     | '/dashboard'
     | '/dashboard/admin/offers'
     | '/dashboard/admin/restaurants'
     | '/dashboard/offers/new'
+    | '/dashboard/admin'
     | '/dashboard/offers'
     | '/dashboard/offers/edit/$id'
   id:
@@ -290,14 +312,16 @@ export interface FileRouteTypes {
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
-    | '/dashboard/admin'
+    | '/support'
     | '/dashboard/analytics'
     | '/dashboard/orders'
+    | '/dashboard/settings'
     | '/offer/$id'
     | '/dashboard/'
     | '/dashboard/admin/offers'
     | '/dashboard/admin/restaurants'
     | '/dashboard/offers/new'
+    | '/dashboard/admin/'
     | '/dashboard/offers/'
     | '/dashboard/offers/edit/$id'
   fileRoutesById: FileRoutesById
@@ -316,11 +340,19 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RestaurantsRoute: typeof RestaurantsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SupportRoute: typeof SupportRoute
   OfferIdRoute: typeof OfferIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -426,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OfferIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/orders': {
       id: '/dashboard/orders'
       path: '/orders'
@@ -440,18 +479,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/admin': {
-      id: '/dashboard/admin'
-      path: '/admin'
-      fullPath: '/dashboard/admin'
-      preLoaderRoute: typeof DashboardAdminRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/offers/': {
       id: '/dashboard/offers/'
       path: '/offers'
       fullPath: '/dashboard/offers/'
       preLoaderRoute: typeof DashboardOffersIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admin/': {
+      id: '/dashboard/admin/'
+      path: '/admin'
+      fullPath: '/dashboard/admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/offers/new': {
@@ -463,17 +502,17 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/admin/restaurants': {
       id: '/dashboard/admin/restaurants'
-      path: '/restaurants'
+      path: '/admin/restaurants'
       fullPath: '/dashboard/admin/restaurants'
       preLoaderRoute: typeof DashboardAdminRestaurantsRouteImport
-      parentRoute: typeof DashboardAdminRoute
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/admin/offers': {
       id: '/dashboard/admin/offers'
-      path: '/offers'
+      path: '/admin/offers'
       fullPath: '/dashboard/admin/offers'
       preLoaderRoute: typeof DashboardAdminOffersRouteImport
-      parentRoute: typeof DashboardAdminRoute
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/offers/edit/$id': {
       id: '/dashboard/offers/edit/$id'
@@ -485,36 +524,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface DashboardAdminRouteChildren {
-  DashboardAdminOffersRoute: typeof DashboardAdminOffersRoute
-  DashboardAdminRestaurantsRoute: typeof DashboardAdminRestaurantsRoute
-}
-
-const DashboardAdminRouteChildren: DashboardAdminRouteChildren = {
-  DashboardAdminOffersRoute: DashboardAdminOffersRoute,
-  DashboardAdminRestaurantsRoute: DashboardAdminRestaurantsRoute,
-}
-
-const DashboardAdminRouteWithChildren = DashboardAdminRoute._addFileChildren(
-  DashboardAdminRouteChildren,
-)
-
 interface DashboardRouteChildren {
-  DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardOrdersRoute: typeof DashboardOrdersRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardAdminOffersRoute: typeof DashboardAdminOffersRoute
+  DashboardAdminRestaurantsRoute: typeof DashboardAdminRestaurantsRoute
   DashboardOffersNewRoute: typeof DashboardOffersNewRoute
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
   DashboardOffersIndexRoute: typeof DashboardOffersIndexRoute
   DashboardOffersEditIdRoute: typeof DashboardOffersEditIdRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAdminRoute: DashboardAdminRouteWithChildren,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardOrdersRoute: DashboardOrdersRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardAdminOffersRoute: DashboardAdminOffersRoute,
+  DashboardAdminRestaurantsRoute: DashboardAdminRestaurantsRoute,
   DashboardOffersNewRoute: DashboardOffersNewRoute,
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
   DashboardOffersIndexRoute: DashboardOffersIndexRoute,
   DashboardOffersEditIdRoute: DashboardOffersEditIdRoute,
 }
@@ -537,6 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RestaurantsRoute: RestaurantsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SupportRoute: SupportRoute,
   OfferIdRoute: OfferIdRoute,
 }
 export const routeTree = rootRouteImport

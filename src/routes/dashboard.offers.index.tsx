@@ -63,7 +63,7 @@ function OffersList() {
             const finalPrice = o.discountedPrice;
             const payout = o.restaurantPrice;
             const commission = finalPrice - payout;
-            
+
             return (
               <li key={o.id} className={`flex items-center gap-3 rounded-2xl bg-card p-3 shadow-card ${!o.active && 'opacity-60 grayscale'}`}>
                 <img src={o.image} alt={o.name} loading="lazy" className="size-16 rounded-xl object-cover" />
@@ -84,18 +84,18 @@ function OffersList() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Link 
-                    to="/dashboard/offers/edit/$id" 
+                  <Link
+                    to="/dashboard/offers/edit/$id"
                     params={{ id: o.id }}
-                    className="grid size-9 place-items-center rounded-full bg-secondary text-primary hover:bg-primary hover:text-white transition" 
+                    className="grid size-9 place-items-center rounded-full bg-secondary text-primary hover:bg-primary hover:text-white transition"
                     aria-label="Edit"
                   >
                     <Pencil className="size-4" />
                   </Link>
                   {o.active && (
-                    <button 
+                    <button
                       onClick={() => deleteOffer(o.id)}
-                      className="grid size-9 place-items-center rounded-full bg-secondary text-destructive hover:bg-destructive hover:text-white transition" 
+                      className="grid size-9 place-items-center rounded-full bg-secondary text-destructive hover:bg-destructive hover:text-white transition"
                       aria-label="Deactivate"
                     >
                       <Trash2 className="size-4" />

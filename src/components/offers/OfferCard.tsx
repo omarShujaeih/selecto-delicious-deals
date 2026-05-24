@@ -3,9 +3,9 @@ import { Clock, Heart, MapPin, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useFavorites } from "@/lib/favorites";
-import { discountPct, type Offer } from "@/lib/offers-data";
+import { discountPct, formatILS, type Offer } from "@/lib/offers-data";
 
-const arabicCities: Record<string, string> = {
+const cityLabels: Record<string, string> = {
   Ramallah: "رام الله",
   Nablus: "نابلس",
   Hebron: "الخليل",
@@ -22,69 +22,65 @@ export function OfferCard({ offer }: { offer: Offer }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fav = has(offer.id);
-  const saved = offer.originalPrice - offer.discountedPrice;
-
-  const displayCity = offer.city ? (arabicCities[offer.city] || offer.city) : "";
-  const displayArea = offer.area || "";
-  const locationString = displayCity && displayArea ? `${displayCity}، ${displayArea}` : (displayCity || `${offer.distanceKm} كم`);
+  const availableQuantity = offer.availableQuantity ?? 10;
+  const location = offer.city ? cityLabels[offer.city] || offer.city : `${offer.distanceKm} كم`;
 
   return (
     <Link
       to="/offer/$id"
       params={{ id: offer.id }}
-      className="group grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:grid-cols-[128px_1fr]"
+      className="group grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition active:scale-[0.99] sm:grid-cols-[132px_1fr]"
+      dir="rtl"
     >
-      <div className="relative min-h-[136px] overflow-hidden">
+      <div className="relative min-h-36 overflow-hidden">
         <img
           src={offer.image}
           alt={offer.name}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
-        <span className="absolute top-2 right-2 rounded-full bg-discount px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
+        <span className="absolute right-2 top-2 rounded-full bg-discount px-2.5 py-1 text-[10px] font-black text-white shadow-sm">
           {discountPct(offer)}%
         </span>
       </div>
 
       <div className="flex min-w-0 flex-col justify-between gap-2 p-3">
-        <div className="min-w-0 space-y-1">
+        <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="truncate text-sm font-black text-foreground">{offer.name}</h3>
-              <p className="truncate text-[11px] font-semibold text-muted-foreground">
-                {offer.restaurant}
-              </p>
+              <p className="mt-0.5 truncate text-[11px] font-bold text-muted-foreground">{offer.restaurant}</p>
             </div>
             <button
               type="button"
               onClick={(event) => {
                 event.preventDefault();
                 if (!user) {
-                  toast.error("الرجاء تسجيل الدخول لحفظ المفضلة");
+                  toast.info("سجل دخولك لحفظ العروض المفضلة.");
                   navigate({ to: "/auth" });
                   return;
                 }
                 toggle(offer.id);
-                toast.success(fav ? "تمت الإزالة من المفضلة" : "تمت الإضافة للمفضلة");
+                toast.success(fav ? "تمت الإزالة من المفضلة" : "تم الحفظ في المفضلة");
               }}
-              className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-discount transition active:scale-95"
-              aria-label={fav ? "Remove from favorites" : "Add to favorites"}
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-discount"
+              aria-label={fav ? "إزالة من المفضلة" : "حفظ في المفضلة"}
             >
               <Heart className={`size-4 ${fav ? "fill-discount" : ""}`} />
             </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-bold text-muted-foreground">
-            <span className="flex items-center gap-0.5 text-amber-500">
+            <span className="flex items-center gap-1 text-amber-500">
               <Star className="size-3 fill-amber-500" />
               {offer.rating || "4.5"}
             </span>
-            <span className="flex items-center gap-0.5 truncate max-w-[130px]">
-              <MapPin className="size-3 text-primary shrink-0" />
-              <span className="truncate">{locationString}</span>
+            <span className="flex items-center gap-1">
+              <MapPin className="size-3 text-primary" />
+              {location}
             </span>
             {offer.pickupTime && (
-              <span className="flex min-w-0 items-center gap-0.5 truncate text-primary">
+              <span className="flex min-w-0 items-center gap-1 text-primary">
                 <Clock className="size-3 shrink-0" />
                 <span className="truncate">{offer.pickupTime}</span>
               </span>
@@ -92,22 +88,20 @@ export function OfferCard({ offer }: { offer: Offer }) {
           </div>
         </div>
 
-        <div className="flex items-end justify-between gap-2 border-t border-border/40 pt-2">
-          <div className="min-w-0">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[11px] font-semibold text-muted-foreground line-through">
-                ₪{offer.originalPrice.toFixed(0)}
+        <div className="flex items-end justify-between gap-3 border-t border-border/50 pt-2">
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-[11px] font-bold text-muted-foreground line-through">
+                {formatILS(offer.originalPrice)}
               </span>
-              <span className="text-base font-black text-primary">
-                ₪{offer.discountedPrice.toFixed(0)}
+              <span className="font-display text-lg font-black text-primary">
+                {formatILS(offer.discountedPrice)}
               </span>
             </div>
-            {saved > 0 && (
-              <p className="text-[10px] font-bold text-emerald-700">وفرت ₪{saved.toFixed(0)}</p>
-            )}
+            <p className="mt-0.5 text-[10px] font-black text-muted-foreground">{availableQuantity} وجبات متاحة</p>
           </div>
           <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-black text-primary-foreground">
-            عرض
+            احجز
           </span>
         </div>
       </div>
