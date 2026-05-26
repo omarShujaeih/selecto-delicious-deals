@@ -101,7 +101,7 @@ function DashboardLayout() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-6xl flex-col gap-0 px-4 py-6 lg:flex-row lg:gap-6" dir="rtl">
+    <div className="safe-top safe-bottom mx-auto flex min-h-dvh max-w-6xl flex-col gap-0 px-4 lg:flex-row lg:gap-6" dir="rtl">
       <aside className="mb-4 shrink-0 rounded-2xl bg-card p-4 shadow-card lg:mb-0 lg:w-60 lg:self-start">
         <div className="flex items-center gap-2 px-1 pb-3">
           <div className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground font-extrabold">S</div>

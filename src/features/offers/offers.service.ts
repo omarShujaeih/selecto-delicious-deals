@@ -21,6 +21,7 @@ export type Offer = {
   area?: string;
   address?: string;
   mapUrl?: string;
+  restaurant_id?: string;
 };
 
 export const SELECTO_COMMISSION_RATE = 0.2;
@@ -147,6 +148,28 @@ export async function fetchMyOffers(restaurantId: string) {
     .from("offers")
     .select("*, restaurants(name, cuisine, city, address, map_url)")
     .eq("restaurant_id", restaurantId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as DbOffer[]).map(mapOffer);
+}
+
+export async function fetchRestaurantById(id: string) {
+  const { data, error } = await supabasePublic
+    .from("restaurants")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchRestaurantActiveOffers(restaurantId: string) {
+  const { data, error } = await supabasePublic
+    .from("offers")
+    .select("*, restaurants(name, cuisine, city, address, map_url)")
+    .eq("restaurant_id", restaurantId)
+    .eq("active", true)
+    .gt("available_quantity", 0)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data as DbOffer[]).map(mapOffer);

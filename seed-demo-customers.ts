@@ -64,7 +64,7 @@ async function seedCustomers() {
             full_name: customer.fullName,
             display_name: customer.fullName,
             city: customer.city,
-            phone_verified: true
+            phone_verified: false
         });
 
         await supabaseAdmin.from('user_roles').upsert({

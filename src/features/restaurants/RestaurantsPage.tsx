@@ -65,7 +65,7 @@ function RestaurantsPage() {
 
   return (
     <div className="phone-frame flex min-h-dvh flex-col">
-      <header className="px-5 pb-4 pt-6" dir="rtl">
+      <header className="px-5 pb-4 safe-top" dir="rtl">
         <h1 className="font-display text-2xl font-extrabold">المطاعم</h1>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="size-3.5" /> رام الله
@@ -98,7 +98,8 @@ function RestaurantsPage() {
             return (
               <Link
                 key={restaurant.id}
-                to="/offers"
+                to="/restaurants/$id"
+                params={{ id: restaurant.id }}
                 className="flex items-center gap-3 rounded-2xl bg-card p-3 shadow-card transition hover:-translate-y-0.5"
               >
                 <span className="grid size-12 place-items-center rounded-xl bg-secondary text-primary">
