@@ -1,18 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.selecto.app',
+  appId: 'ps.selecto.app',
   appName: 'Selecto',
   webDir: 'dist/client',
-  // Uncomment and change this to your production or staging URL
-  // because TanStack Start uses SSR. For local dev with android emulator,
-  // you can use 'http://10.0.2.2:8080'
-  /*
+  // Point to local Vite dev server for Android Emulator testing
+  // because this is an SSR app without a static index.html
   server: {
-    url: 'https://your-production-url.com',
+    url: 'http://10.0.2.2:5173',
     cleartext: true
   }
-  */
 };
 
 export default config;
