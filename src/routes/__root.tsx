@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   HeadContent,
@@ -10,9 +10,14 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/lib/auth-context";
-import { CartProvider } from "@/lib/cart-context";
+import { Toaster } from "@/shared/ui/sonner";
+import { AuthProvider } from "@/features/auth/auth.context";
+import { CartProvider } from "@/features/cart/cart.context";
+import { App } from "@capacitor/app";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { PushNotifications } from "@capacitor/push-notifications";
+import { savePushToken } from "@/features/auth/account.functions";
 
 function NotFoundComponent() {
   return (
@@ -115,11 +120,11 @@ export const Route = createRootRouteWithContext<{
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -134,10 +139,81 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
+          <PwaRegistration />
+          <CapacitorRegistration />
           <Outlet />
           <Toaster />
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function PwaRegistration() {
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || import.meta.env.DEV) return;
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.warn("[PWA] Service worker registration failed:", error);
+    });
+  }, []);
+  return null;
+}
+
+function CapacitorRegistration() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const initNative = async () => {
+      try {
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: "#0A432A" });
+      } catch (e) {
+        // Ignored on web
+      }
+
+      try {
+        await SplashScreen.hide();
+      } catch (e) {
+        // Ignored on web
+      }
+
+      try {
+        App.addListener("backButton", ({ canGoBack }) => {
+          if (canGoBack || window.history.length > 1) {
+            window.history.back();
+          } else {
+            App.exitApp();
+          }
+        });
+      } catch (e) {
+        // Ignored on web
+      }
+
+      try {
+        // Push Notifications Setup
+        const permStatus = await PushNotifications.requestPermissions();
+        if (permStatus.receive === 'granted') {
+          await PushNotifications.register();
+        }
+
+        PushNotifications.addListener('registration', async (token) => {
+          console.log('Push registration success, token: ' + token.value);
+          try {
+            await savePushToken({ data: { token: token.value } });
+          } catch (e) {
+            console.warn("Failed to save push token to server", e);
+          }
+        });
+
+      } catch (e) {
+        // Ignored on web or devices without Google Play Services
+      }
+    };
+
+    initNative();
+  }, [router]);
+
+  return null;
 }

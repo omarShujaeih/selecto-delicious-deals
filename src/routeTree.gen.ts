@@ -9,15 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -35,6 +38,11 @@ import { Route as DashboardAdminRestaurantsRouteImport } from './routes/dashboar
 import { Route as DashboardAdminOffersRouteImport } from './routes/dashboard.admin.offers'
 import { Route as DashboardOffersEditIdRouteImport } from './routes/dashboard.offers.edit.$id'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -53,6 +61,11 @@ const RestaurantsRoute = RestaurantsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalRoute = PortalRouteImport.update({
@@ -78,6 +91,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeleteAccountRoute = DeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -168,15 +186,18 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/delete-account': typeof DeleteAccountRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/offers': typeof OffersRoute
   '/orders': typeof OrdersRoute
   '/portal': typeof PortalRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -194,15 +215,18 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/offers': typeof OffersRoute
   '/orders': typeof OrdersRoute
   '/portal': typeof PortalRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -222,15 +246,18 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/delete-account': typeof DeleteAccountRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/offers': typeof OffersRoute
   '/orders': typeof OrdersRoute
   '/portal': typeof PortalRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/restaurants': typeof RestaurantsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -251,15 +278,18 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/dashboard'
+    | '/delete-account'
     | '/explore'
     | '/favorites'
     | '/offers'
     | '/orders'
     | '/portal'
+    | '/privacy'
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
     | '/support'
+    | '/terms'
     | '/dashboard/analytics'
     | '/dashboard/orders'
     | '/dashboard/settings'
@@ -277,15 +307,18 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/delete-account'
     | '/explore'
     | '/favorites'
     | '/offers'
     | '/orders'
     | '/portal'
+    | '/privacy'
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
     | '/support'
+    | '/terms'
     | '/dashboard/analytics'
     | '/dashboard/orders'
     | '/dashboard/settings'
@@ -304,15 +337,18 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/dashboard'
+    | '/delete-account'
     | '/explore'
     | '/favorites'
     | '/offers'
     | '/orders'
     | '/portal'
+    | '/privacy'
     | '/profile'
     | '/restaurants'
     | '/sitemap.xml'
     | '/support'
+    | '/terms'
     | '/dashboard/analytics'
     | '/dashboard/orders'
     | '/dashboard/settings'
@@ -332,20 +368,30 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DeleteAccountRoute: typeof DeleteAccountRoute
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   OffersRoute: typeof OffersRoute
   OrdersRoute: typeof OrdersRoute
   PortalRoute: typeof PortalRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   RestaurantsRoute: typeof RestaurantsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
   OfferIdRoute: typeof OfferIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -372,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal': {
@@ -407,6 +460,13 @@ declare module '@tanstack/react-router' {
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delete-account': {
+      id: '/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof DeleteAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -560,15 +620,18 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DeleteAccountRoute: DeleteAccountRoute,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   OffersRoute: OffersRoute,
   OrdersRoute: OrdersRoute,
   PortalRoute: PortalRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   RestaurantsRoute: RestaurantsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
   OfferIdRoute: OfferIdRoute,
 }
 export const routeTree = rootRouteImport

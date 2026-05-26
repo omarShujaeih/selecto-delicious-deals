@@ -1,7 +1,3 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Route as FeatureRoute } from "@/features/admin/AdminRedirectPage";
 
-export const Route = createFileRoute("/admin")({
-  beforeLoad: () => {
-    throw redirect({ to: "/dashboard/admin" });
-  },
-});
+export const Route = FeatureRoute;

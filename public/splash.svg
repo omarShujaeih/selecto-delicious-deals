@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 2796">
+  <rect width="1290" height="2796" fill="#f8f4ec"/>
+  <circle cx="645" cy="1338" r="220" fill="#123f32"/>
+  <circle cx="645" cy="1338" r="138" fill="#f8f4ec"/>
+  <path d="M568 1350c22 56 78 84 134 63 41-16 68-54 70-96-38 16-71 12-100-12-28-23-62-31-104 45z" fill="#f08a24"/>
+  <path d="M556 1309c39-72 115-80 174-23 12 12 29 10 44 4-25-44-73-73-128-73-63 0-116 39-137 92 16-2 31-2 47 0z" fill="#2d8f68"/>
+  <text x="645" y="1638" text-anchor="middle" font-family="Arial, sans-serif" font-size="92" font-weight="800" fill="#123f32">Selecto</text>
+</svg>

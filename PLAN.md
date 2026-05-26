@@ -1,90 +1,91 @@
-# 📱 Selecto App - Project Plan & Architecture
+# Selecto App - Project Handoff
 
-هذا الملف يوثق هيكلية التطبيق، التقنيات المستخدمة، قاعدة البيانات، وصلاحيات المستخدمين ليكون مرجعاً مع تطور المشروع.
+آخر تحديث: 2026-05-26
 
----
+## فكرة المشروع
 
-## 🛠️ التقنيات المستخدمة (Tech Stack)
-- **واجهة المستخدم (Frontend):** React + Vite
-- **لغة البرمجة:** TypeScript
-- **الراوتينج (Routing):** TanStack Router (يوفر أمان عالي للروابط Typesafe)
-- **التصميم (Styling):** Tailwind CSS + مكونات مخصصة (UI Components)
-- **قاعدة البيانات والباك إند (Backend/BaaS):** Supabase (PostgreSQL)
-- **تطبيق الموبايل (مستقبلاً):** Capacitor (لتحويل كود الويب إلى iOS & Android)
+Selecto هو تطبيق عروض طعام محلي. الزبون يستعرض العروض، يضيفها إلى السلة، ثم يؤكد الطلب. المطعم يدير عروضه وطلباته من لوحة تحكم. الأدمن يدير المطاعم والعروض على مستوى المنصة.
 
----
+قاعدة التسعير الحالية:
 
-## 👥 الأدوار والصلاحيات (Roles & Permissions)
-التطبيق يستخدم نظام RBAC (Role-Based Access Control) لإدارة الصلاحيات:
+- المطعم يدخل مستحقاته في `offers.discounted_price`.
+- سعر الزبون النهائي = مستحقات المطعم + عمولة Selecto بنسبة 20%.
+- منطق العرض في الواجهة موجود في `src/features/offers/offers.service.ts` عبر `toCustomerPrice`.
+- مصدر الحقيقة عند الشراء هو Supabase RPC (`place_order`) و Database Triggers (`set_commission`).
 
-### 1. الزبون (Customer)
-- **الدور الأساسي:** تصفح العروض، الشراء، وإنقاذ الطعام.
-- **الصلاحيات:**
-  - رؤية العروض النشطة (`active = true`).
-  - إضافة الوجبات للسلة وإتمام عملية الدفع (Checkout).
-  - تتبع الطلبات الخاصة به في صفحة الطلبات.
-  - إضافة العروض للمفضلة.
-- **القيود:** لا يمكنه الدخول إلى لوحة التحكم (Dashboard). يتم توجيهه تلقائياً إذا حاول ذلك.
+## التقنية والتشغيل
 
-### 2. المطعم (Restaurant / Partner)
-- **الدور الأساسي:** إدارة العروض الخاصة بمطعمه ومتابعة المبيعات.
-- **الصلاحيات:**
-  - الدخول إلى لوحة تحكم الشركاء (Dashboard).
-  - إضافة، تعديل، وحذف عروض جديدة (CRUD).
-  - رؤية إحصائيات المبيعات الخاصة بمطعمه فقط.
-  - رؤية الطلبات الواردة لمطعمه.
-- **القيود:** لا يمكنه رؤية إحصائيات مطاعم أخرى. لا يمكنه تصفح التطبيق كزبون عادي (لمنع التعارض في تجربة الاستخدام).
+- Frontend: React + TypeScript.
+- Runtime/build: Vite + TanStack Start.
+- Routing: TanStack Router file-based routes.
+- Data/backend: Supabase Auth/Postgres/RPC.
+- Styling: Tailwind CSS v4 + Radix UI primitives.
+- Deploy target: Cloudflare عبر Wrangler.
+- Mobile: Capacitor جاهز للاستخدام، لذلك تبقى مجلدات `android/` و`ios/` (الأولوية حالياً لنسخة الويب PWA).
 
-### 3. المدير (Admin)
-- **الدور الأساسي:** إدارة المنصة بالكامل.
-- **الصلاحيات:**
-  - رؤية كل إحصائيات المنصة والمبيعات الإجمالية.
-  - إدارة المطاعم (إضافة مطاعم جديدة للنظام).
-  - الإشراف العام على كل العروض والعمليات.
-- **القيود:** لا يمكنه تصفح التطبيق كزبون عادي.
+أوامر مهمة:
 
----
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+npm run check:db
+npm run deploy:cloudflare:dry-run
+```
 
-## 🗄️ هيكل قاعدة البيانات (Database Schema)
-مبنية على Supabase (PostgreSQL):
+لا ترفع `.env` أو مفاتيح Supabase الخاصة. `SUPABASE_SERVICE_ROLE_KEY` يجب أن يبقى server-only.
 
-1. **`profiles`**: بيانات المستخدمين الأساسية (الاسم، الصورة).
-2. **`user_roles`**: يربط كل مستخدم بصلاحيته (customer, restaurant, admin).
-3. **`restaurants`**: بيانات المطاعم (الاسم، المدينة، التقييم، المالك `owner_id`).
-4. **`offers`**: العروض والوجبات (السعر الأصلي، سعر الخصم، وقت الاستلام، حالة العرض `active`).
-5. **`transactions`**: السجلات المالية والطلبات المؤكدة (رقم العرض، رقم المطعم، رقم الزبون، مبلغ البيع، العمولة).
+## الهيكلة الحالية
 
----
+```text
+src/
+  app/                 مداخل TanStack Start: router/server/start
+  routes/              ملفات الراوت، أغلبها wrappers خفيفة للميزات
+  features/
+    admin/             إدارة الأدمن (اللوحة، العروض، المطاعم)
+    auth/              تسجيل الدخول، الأدوار، AuthProvider، حماية المسارات (Guards)
+    cart/              السلة وعمليات الدفع (Checkout)
+    customer/          profile/favorites/explore/support
+    dashboard/         لوحة المطعم (إدارة الطلبات، العروض، والإعدادات)
+    home/              الصفحة الأولى
+    legal/             privacy/terms/delete-account
+    offers/            عروض الزبائن، الأسعار، OfferCard
+    orders/            طلبات الزبون
+    push/              push notifications
+    restaurants/       صفحة المطاعم
+  shared/
+    hooks/             hooks مشتركة
+    layout/            BottomNav و SelectoLogo
+    lib/               utilities مشتركة
+    ui/                مكونات UI العامة (مثل SplashScreen)
+  integrations/
+    supabase/          clients, auth middleware, generated types
+  scripts/             أدوات seed/check/demo
+supabase/
+  migrations/          تغييرات قاعدة البيانات
+```
 
-## 🗺️ هيكلة الصفحات (App Routing)
+## حالة المشروع الحالية (ما تم إنجازه مؤخراً)
 
-### 🔓 الصفحات العامة وللزبائن:
-- `/` : شاشة البداية (Splash Screen) - تفحص حالة الدخول وتوجه المستخدم.
-- `/auth` : تسجيل الدخول وإنشاء حساب.
-- `/offers` : الشاشة الرئيسية للزبون (تغدية العروض).
-- `/offer/$id` : صفحة تفاصيل العرض الفردي.
-- `/cart` : سلة المشتريات وعملية الدفع (Checkout).
-- `/orders` : تاريخ طلبات الزبون.
-- `/favorites` : العروض المفضلة.
-- `/profile` : الملف الشخصي.
+التطبيق الآن في أقصى درجات النظافة والاستقرار (Stable 100%):
+- **بناء التطبيق (Build):** يعمل `npm run build` و `npm run lint` بنجاح تام وبدون أي أخطاء (0 Errors).
+- **الشاشة الترحيبية (Splash Screen):** تم إنشاء شاشة ترحيبية فخمة (Mobile-First) بخاصية Micro-animations بمدة 8 ثوانٍ، وتم توحيد استيرادها في كامل المشروع.
+- **طلبات الزبائن (Cart & Checkout):** 
+  - تم إضافة خيارات طريقة التوصيل (`fulfillment_type`: Delivery/Pickup).
+  - تم إضافة خيار لكتابة ملاحظات للطلب (`customer_note`).
+  - عمليات الدفع والشراء تتحدث مباشرة في الـ Database دون مشاكل في Typescript.
+- **إدارة المطاعم (Restaurant Dashboard):** تدعم اللوحة حالياً عرض خيارات التوصيل والملاحظات القادمة من الزبون بشكل سليم.
+- **الحماية والصلاحيات (Role Guards):** الـ Redirects تعمل بشكل ممتاز ولا يمكن للزبون الدخول لصفحات المطعم/الأدمن، والعكس صحيح (محمية بـ `useCustomerGuard` وغيره).
+- **تم عمل اختبار جودة كامل (QA Report):** موجود في `SELECTO_QA_REPORT.md` ويثبت جاهزية المشروع للمرحلة القادمة.
 
-### 🔒 صفحات لوحة التحكم (Dashboard - للمطاعم والأدمن):
-- `/portal` : نقطة دخول الشركاء (Partner Portal).
-- `/dashboard` : الإطار العام للوحة التحكم (Sidebar + Layout).
-  - `/dashboard/` : الصفحة الرئيسية للوحة التحكم (نظرة عامة).
-  - `/dashboard/analytics` : الإحصائيات والمبيعات.
-  - `/dashboard/offers/` : إدارة العروض (قائمة).
-  - `/dashboard/offers/new` : إضافة عرض جديد.
-  - `/dashboard/offers/edit/$id` : تعديل عرض حالي.
-  - `/dashboard/admin/restaurants` : (للأدمن فقط) إدارة وإضافة المطاعم.
+## ما المتبقي للمبرمج القادم (Next Steps)
 
----
-
-## ⚙️ ميكانيكية العمل الأساسية (Core Workflows)
-- **عملية الشراء (Checkout Flow):** 
-  الزبون يضيف الوجبة للسلة -> يختار (استلام/توصيل) -> يختار (فيزا/كاش) -> يؤكد الطلب -> يتم تسجيل الطلب في جدول `transactions` -> يتحول العرض إلى `active = false` ليختفي من التطبيق.
-- **حماية الصفحات (Route Guards):**
-  نستخدم دوال مثل `useCustomerGuard` و `useAdminGuard` لفحص دور المستخدم قبل عرض أي صفحة، وتوجيهه للمكان الصحيح فوراً.
-
----
-*تم إنشاء هذا الملف ليكون خريطة الطريق للمشروع. سيتم تحديثه كلما أضفنا ميزات رئيسية جديدة.*
+1. **نظام الإشعارات (Push Notifications):**
+   - إضافة نظام إشعارات (FCM) أو رسائل واتساب لإرسال تنبيه فوري للمطعم عند وصول طلب جديد، وللزبون عند تغيير حالة طلبه (مقبول، جاهز، تم الاستلام).
+2. **تحسينات واجهة المطعم:**
+   - إضافة تصميم (Badge) مميز في صفحة `DashboardOrdersPage` ليفرق العاملون في المطعم بين طلبات التوصيل (Delivery) وطلبات الاستلام من الفرع (Pickup) بوضوح وسرعة.
+3. **تحليلات الأدمن (Admin Analytics):**
+   - إضافة فلتر زمني (تاريخ محدد، هذا الشهر، هذا الأسبوع) لإحصائيات الإيرادات والعمولات في لوحة تحكم الإدارة `AdminHomePage`.
+4. **الدفع الإلكتروني (Online Payment):**
+   - بوابة الدفع (Visa/Mastercard) متوقفة حالياً (يظهر عليها علامة قريباً). يجب تفعيل ربط الـ API الخاص ببوابة الدفع.
