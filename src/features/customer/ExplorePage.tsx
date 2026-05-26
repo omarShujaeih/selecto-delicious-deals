@@ -61,7 +61,7 @@ function ExplorePage() {
           <Link to="/offers" className="grid size-10 place-items-center rounded-2xl bg-secondary text-primary">
             <ArrowRight className="size-5" />
           </Link>
-          <h1 className="font-display text-xl font-black">استكشاف العروض</h1>
+          <h1 className="font-display text-xl font-black">استكشاف اللقطات</h1>
           <span className="size-10" />
         </div>
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
@@ -69,7 +69,7 @@ function ExplorePage() {
           <input
             value={query}
             onChange={(event) => setQuery(event.currentTarget.value)}
-            placeholder="ابحث عن مطعم أو وجبة"
+            placeholder="ابحث عن مطعم أو لقطة"
             className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none"
           />
         </div>
@@ -92,9 +92,9 @@ function ExplorePage() {
       </header>
 
       <main className="space-y-4 px-5 py-5">
-        {loading && <StateCard title="جاري تحميل العروض..." />}
+        {loading && <StateCard title="ثواني ونجيبلك الأكل الأوفر..." />}
         {!loading && loadError && <StateCard title={loadError} />}
-        {!loading && !loadError && list.length === 0 && <StateCard title="لا توجد عروض مطابقة للبحث." />}
+        {!loading && !loadError && list.length === 0 && <StateCard title="ما لقينا عروض مطابقة" />}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {!loading && !loadError && list.map((offer) => <OfferCard key={offer.id} offer={offer} />)}
         </div>

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/offers")({
   component: OffersPage,
 });
 
-const categoryLabels: Record<string, string> = { All: "الكل", Burgers: "برغر", Pizzas: "بيتزا", Bowls: "وجبات", Asian: "آسيوي", Sushi: "سوشي" };
+const categoryLabels: Record<string, string> = { All: "الكل" };
 
 function OffersPage() {
   const [category, setCategory] = useState("All");
@@ -45,6 +45,7 @@ function OffersPage() {
           <div className="text-right">
             <div className="flex items-center gap-1.5 text-xs font-bold text-white/80">
               <MapPin className="size-3.5" />
+              <span>العروض في:</span>
               <select value={selectedCity} onChange={(e) => { setSelectedCity(e.target.value); setPreferredCity(e.target.value); }} className="bg-transparent text-xs font-black text-white outline-none">
                 {cities.map((city) => <option key={city.value} value={city.value} className="bg-primary">{city.label}</option>)}
               </select>
@@ -55,14 +56,21 @@ function OffersPage() {
         </div>
         <div className="mt-3 flex items-center gap-3 rounded-2xl bg-white/12 px-4 py-3">
           <Search className="size-4 text-white/70" />
-          <input value={query} onChange={(e) => setQuery(e.currentTarget.value)} placeholder="ابحث عن وجبة أو مطعم" className="min-w-0 flex-1 bg-transparent text-base font-bold text-white outline-none placeholder:text-white/55" />
+          <input value={query} onChange={(e) => setQuery(e.currentTarget.value)} placeholder="ابحث عن لقطة أو مطعم" className="min-w-0 flex-1 bg-transparent text-base font-bold text-white outline-none placeholder:text-white/55" />
         </div>
       </header>
       <main className="space-y-5 px-5 pt-5">
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm" dir="rtl">
-          <p className="text-xs font-black text-primary">عروض اليوم</p>
-          <h2 className="mt-1 font-display text-xl font-black">وجبات مختارة بسعر نهائي واضح</h2>
-          <p className="mt-1 text-xs font-semibold leading-6 text-muted-foreground">اختر العرض، راجع السلة، واستلم وجبتك من المطعم في الوقت المحدد.</p>
+        <section className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card p-4 shadow-sm" dir="rtl">
+          <div className="absolute -left-10 -top-10 size-28 rounded-full bg-primary/10" />
+          <div className="relative">
+            <p className="text-xs font-black text-primary">لقطات اليوم</p>
+            <h2 className="mt-1 font-display text-2xl font-black leading-tight">صيدها في الدقيقة الـ90 يا غالي</h2>
+            <p className="mt-2 text-xs font-semibold leading-6 text-muted-foreground">اختر مدينتك وشوف العروض القريبة منك. أكلة بتشبع وسعر ما بيوجع.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-black text-primary">آخر الشهر؟ Selecto معك</span>
+              <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-black text-primary">لقطة سكنات ودوام</span>
+            </div>
+          </div>
         </section>
         <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar">
           {categories.map((item) => (
@@ -73,9 +81,9 @@ function OffersPage() {
         </div>
         <section className="space-y-3 pb-6">
           <div className="flex items-center justify-between"><h2 className="font-display text-xl font-black">متوفر الآن</h2><Link to="/explore" className="text-xs font-black text-primary">عرض الكل</Link></div>
-          {loading && <StateCard title="جاري تحميل العروض..." />}
+          {loading && <StateCard title="بنفتشلك على اللقطات..." />}
           {!loading && loadError && <StateCard title={loadError} />}
-          {!loading && !loadError && list.length === 0 && <StateCard title="لا توجد عروض متاحة حالياً." />}
+          {!loading && !loadError && list.length === 0 && <StateCard title="لسه ما في عروض هون" subtitle="جرّب مدينة ثانية، أو ارجع بعد شوي… يمكن اللقطة الجاية تكون إلك." />}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{!loading && !loadError && list.map((offer) => <OfferCard key={offer.id} offer={offer} />)}</div>
         </section>
       </main>
@@ -84,6 +92,11 @@ function OffersPage() {
   );
 }
 
-function StateCard({ title }: { title: string }) {
-  return <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-10 text-center text-sm font-black text-muted-foreground">{title}</div>;
+function StateCard({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-10 text-center">
+      <p className="text-sm font-black text-foreground">{title}</p>
+      {subtitle && <p className="mx-auto mt-2 max-w-xs text-xs font-semibold leading-6 text-muted-foreground">{subtitle}</p>}
+    </div>
+  );
 }

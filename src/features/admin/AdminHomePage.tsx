@@ -40,6 +40,7 @@ type Tx = {
 function AdminOverview() {
   const [tx, setTx] = useState<Tx[]>([]);
   const [counts, setCounts] = useState({ restaurants: 0, offers: 0, activeOffers: 0, transactions: 0 });
+  const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month" | "all">("all");
 
   useEffect(() => {
     (async () => {
@@ -108,11 +109,33 @@ function AdminOverview() {
   const month = sum(30 * dayMs);
   const total = sum(Infinity);
 
+  const filteredTx = tx.filter((t) => {
+    if (timeFilter === "today") return now - new Date(t.created_at).getTime() <= dayMs;
+    if (timeFilter === "week") return now - new Date(t.created_at).getTime() <= 7 * dayMs;
+    if (timeFilter === "month") return now - new Date(t.created_at).getTime() <= 30 * dayMs;
+    return true;
+  });
+
+  const filteredSales = filteredTx.reduce((acc, t) => acc + Number(t.customer_total_price || 0), 0);
+  const filteredCommission = filteredTx.reduce((acc, t) => acc + Number(t.commission_amount || 0), 0);
+
   return (
     <div className="space-y-6" dir="rtl">
-      <header>
-        <h1 className="font-display text-2xl font-extrabold text-foreground">لوحة تحكم الإدارة</h1>
-        <p className="text-sm text-muted-foreground">نظرة عامة على المنصة، مدفوعات العملاء، ومتابعة عمولة التطبيق (20%).</p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-extrabold text-foreground">لوحة تحكم الإدارة</h1>
+          <p className="text-sm text-muted-foreground">نظرة عامة على المنصة، مدفوعات العملاء، ومتابعة عمولة التطبيق (20%).</p>
+        </div>
+        <select
+          value={timeFilter}
+          onChange={(e) => setTimeFilter(e.target.value as any)}
+          className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold shadow-sm outline-none focus:border-primary"
+        >
+          <option value="today">اليوم</option>
+          <option value="week">هذا الأسبوع</option>
+          <option value="month">هذا الشهر</option>
+          <option value="all">كل الوقت</option>
+        </select>
       </header>
 
       {/* KPI Cards */}
@@ -120,9 +143,9 @@ function AdminOverview() {
         <Stat icon={Store} label="المطاعم" value={counts.restaurants.toLocaleString()} />
         <Stat icon={Package} label="إجمالي الوجبات" value={counts.offers.toLocaleString()} />
         <Stat icon={CheckCircle} label="العروض النشطة" value={counts.activeOffers.toLocaleString()} />
-        <Stat icon={ShoppingCart} label="إجمالي الطلبات" value={counts.transactions.toLocaleString()} />
-        <Stat icon={DollarSign} label="ما دفعه العملاء" value={`₪${total.sales.toFixed(2)}`} />
-        <Stat icon={Percent} label="أرباح Selecto" value={`₪${total.commission.toFixed(2)}`} highlight />
+        <Stat icon={ShoppingCart} label="طلبات الفترة" value={filteredTx.length.toLocaleString()} />
+        <Stat icon={DollarSign} label="دفع العملاء" value={`₪${filteredSales.toFixed(2)}`} />
+        <Stat icon={Percent} label="أرباح Selecto" value={`₪${filteredCommission.toFixed(2)}`} highlight />
       </div>
 
       {/* Sales & Commission Section */}
@@ -161,14 +184,14 @@ function AdminOverview() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {tx.length === 0 ? (
+              {filteredTx.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-xs text-muted-foreground">
-                    لم يتم تسجيل أي عمليات بعد.
+                    لم يتم تسجيل أي عمليات في هذه الفترة.
                   </td>
                 </tr>
               ) : (
-                tx.slice(0, 50).map((t) => (
+                filteredTx.slice(0, 50).map((t) => (
                   <tr key={t.id} className="hover:bg-secondary/30">
                     <td className="px-5 py-3 text-xs">
                       <div className="font-bold">{new Date(t.created_at).toLocaleDateString("ar-EG")}</div>

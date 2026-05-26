@@ -29,8 +29,8 @@ function SupportPage() {
 
       <main className="space-y-8 px-5 py-6">
         <section className="text-center">
-          <h2 className="font-display text-2xl font-black text-slate-900">كيف نقدر نساعدك؟</h2>
-          <p className="mt-2 text-sm font-semibold text-slate-600">نحن هنا للإجابة على استفساراتك وتسهيل تجربتك.</p>
+          <h2 className="font-display text-2xl font-black text-slate-900">المساعدة والدعم</h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm font-semibold leading-7 text-slate-600">صار معك إشي؟ احكيلنا. ملناش غير بعض يا غالي.</p>
         </section>
 
         {/* FAQ */}
@@ -184,7 +184,7 @@ function RecommendationsSection() {
       </h3>
       <div className="rounded-2xl border border-border bg-primary/5 p-5">
         <p className="text-sm font-semibold leading-relaxed text-slate-700">
-          نرحب بأي توصيات أو ملاحظات تساعدنا على تحسين Selecto. إذا كان لديك اقتراح لتطوير التطبيق، إضافة مطعم جديد، أو تحسين تجربة المستخدم، شاركنا رأيك.
+          عندك اقتراح يحسن Selecto؟ اتركه هون. كل ملاحظة بتساعدنا نخلي اللقطات أوضح والتجربة أريح.
         </p>
       </div>
     </section>
@@ -199,7 +199,7 @@ function LeaveMessageForm() {
     // Simulate network delay for MVP
     setTimeout(() => {
       setLoading(false);
-      toast.success("تم استلام رسالتك بنجاح، سنقوم بالتواصل معك قريباً.");
+      toast.success("وصلتنا رسالتك، وبنرجعلك بأقرب وقت.");
       (e.target as HTMLFormElement).reset();
     }, 600);
   };
@@ -234,7 +234,7 @@ function LeaveMessageForm() {
         </div>
         <div className="space-y-2">
           <label className="text-xs font-black text-slate-700">رسالتك</label>
-          <textarea required rows={4} className="w-full resize-none rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" placeholder="اكتب رسالتك هنا..."></textarea>
+          <textarea required rows={4} className="w-full resize-none rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" placeholder="اكتب رسالتك أو ملاحظتك..."></textarea>
         </div>
         <button disabled={loading} type="submit" className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-black text-white shadow-[0_8px_24px_rgba(10,67,42,0.25)] disabled:opacity-60 transition-transform active:scale-[0.98]">
           {loading ? "جاري الإرسال..." : "إرسال الرسالة"}

@@ -43,7 +43,7 @@ type DemoRestaurant = {
   rating: number;
 };
 
-const demoRestaurants: DemoRestaurant[] = [
+const demoRestaurants: DemoRestaurant[] = ([
   ["00000000-2000-4000-8000-000000000001", "zaman@example.com", "زمن كافيه", "قهوة وفطور فلسطيني", "Ramallah", "الماصيون، رام الله", "zaman@example.com", "0599000001", "https://maps.google.com/?q=Zamn+Cafe+Ramallah", 4.8],
   ["00000000-2000-4000-8000-000000000002", "burgers@example.com", "برغر شارع ركب", "برغر ووجبات سريعة", "Ramallah", "شارع ركب، رام الله", "burgers@example.com", "0599000002", "https://maps.google.com/?q=Rukab+Street+Burgers+Ramallah", 4.7],
   ["00000000-2000-4000-8000-000000000003", "zaman@example.com", "منقوشة البلد", "مناقيش ومخبوزات", "Ramallah", "وسط رام الله", "manaqeesh@selecto.ps", "0599000003", "https://maps.google.com/?q=Ramallah+Manakeesh", 4.6],
@@ -62,7 +62,7 @@ const demoRestaurants: DemoRestaurant[] = [
   ["00000000-2000-4000-8000-000000000016", "burgers@example.com", "طابون طوباس", "طابون وفطائر", "Tubas", "شارع المدارس، طوباس", "tubas.taboon@selecto.ps", "0599000016", "https://maps.google.com/?q=Tubas+Taboon", 4.6],
   ["00000000-2000-4000-8000-000000000017", "zaman@example.com", "مندي البيرة", "رز ومندي", "Al-Bireh", "شارع الإرسال، البيرة", "bireh.mandi@selecto.ps", "0599000017", "https://maps.google.com/?q=Al+Bireh+Mandi", 4.6],
   ["00000000-2000-4000-8000-000000000018", "burgers@example.com", "حلويات غزة", "حلويات عربية", "Gaza", "الرمال، غزة", "gaza.sweets@selecto.ps", "0599000018", "https://maps.google.com/?q=Gaza+Sweets", 4.8],
-].map(([id, ownerEmail, name, cuisine, city, address, contact_email, phone_number, map_url, rating]) => ({
+] as any[]).map(([id, ownerEmail, name, cuisine, city, address, contact_email, phone_number, map_url, rating]) => ({
   id,
   ownerEmail,
   name,

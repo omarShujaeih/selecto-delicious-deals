@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { notifyCustomersOfOffer } from "@/features/push/push.functions";
+import { notifyCustomersOfOffer, notifyCustomerOfOrderStatus } from "@/features/push/push.functions";
 
 // Helper function to verify restaurant role and get restaurant ID
 async function requireRestaurant(supabase: any, userId: string) {
@@ -133,6 +133,10 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       .eq("id", data.id);
 
     if (error) throw new Error(error.message);
+
+    // Notify customer in the background
+    notifyCustomerOfOrderStatus({ data: { transactionId: data.id, status: data.status } }).catch(() => {});
+
     return { success: true };
   });
 

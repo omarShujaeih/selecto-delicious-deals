@@ -72,7 +72,7 @@ function OfferDetailsPage() {
       .then((data) => {
         if (!active) return;
         setOffer(data);
-        setError(data ? null : "هذا العرض غير متوفر حالياً.");
+        setError(data ? null : "هاي اللقطة طارت حالياً.");
       })
       .catch(() => {
         if (!active) return;
@@ -87,7 +87,7 @@ function OfferDetailsPage() {
     };
   }, [id]);
 
-  if (loading) return <PageState title="جاري تحميل تفاصيل العرض..." />;
+  if (loading) return <PageState title="بنجهزلك تفاصيل اللقطة..." />;
   if (!offer) {
     return (
       <PageState
@@ -108,7 +108,7 @@ function OfferDetailsPage() {
     if (!offer) return;
 
     if (!user) {
-      toast.info("سجل دخولك لإتمام الحجز.");
+      toast.info("سجّل دخولك لإتمام الحجز.");
       router.navigate({
         to: "/auth",
         search: { redirect: `/offer/${offer.id}` },
@@ -175,7 +175,7 @@ function OfferDetailsPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-[11px] font-black text-muted-foreground">
-                السعر النهائي
+                السعر
               </p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="font-display text-3xl font-black text-primary">
@@ -203,7 +203,10 @@ function OfferDetailsPage() {
           <h2 className="font-display text-lg font-black">تفاصيل الوجبة</h2>
           <p className="mt-2 text-sm font-semibold leading-7 text-muted-foreground">
             {offer.description ||
-              "وجبة مختارة من مطعم محلي، متاحة ضمن وقت الاستلام المحدد وبسعر نهائي واضح."}
+              "وجبة محترمة بسعر أرحم من مطعم محلي قريب. الكمية محدودة، واللقطة ما بتستنى."}
+          </p>
+          <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-xs font-black text-primary">
+            الكمية محدودة، واللقطة ما بتستنى.
           </p>
         </section>
 
@@ -243,7 +246,7 @@ function OfferDetailsPage() {
           onClick={addToCart}
           className="flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-4 text-sm font-black text-primary-foreground shadow-card"
         >
-          <span>أضف إلى السلة</span>
+          <span>احجز وجبتك</span>
           <span>{formatILS(offer.discountedPrice * quantity)}</span>
         </button>
       </div>

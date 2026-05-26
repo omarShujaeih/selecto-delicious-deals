@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userId = session?.user?.id;
   const accessToken = session?.access_token;
 
-  const fetchRoles = useCallback(async (isActive = () => true, signal?: AbortSignal) => {
+  const fetchRoles = useCallback(async (isActive: () => boolean = () => true, signal?: AbortSignal) => {
     if (!userId || !accessToken) {
       if (isActive()) {
         setRoles([]);

@@ -3,8 +3,8 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 
-const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) as string;
+const key = (process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY) as string;
 
 if (!url || !key) {
   throw new Error("Missing Supabase URL or publishable key.");

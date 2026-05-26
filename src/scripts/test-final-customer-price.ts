@@ -116,7 +116,7 @@ async function main() {
     if (priceError) throw priceError;
     if (priceTxs?.length !== 2) throw new Error(`Expected 2 transactions, got ${priceTxs?.length ?? 0}.`);
 
-    const transactionIds = priceTxs.map((tx) => tx.transaction_id);
+    const transactionIds = priceTxs.map((tx: any) => tx.transaction_id);
     const { data: transactions, error: transactionError } = await supabase
       .from("transactions")
       .select("id, restaurant_price, commission_rate, commission_amount, customer_total_price, restaurant_payout")
@@ -124,7 +124,7 @@ async function main() {
     if (transactionError) throw transactionError;
     if (transactions?.length !== 2) throw new Error(`Expected to read 2 transactions, got ${transactions?.length ?? 0}.`);
 
-    for (const tx of transactions) {
+    for (const tx of transactions as any[]) {
       assertMoney(tx.restaurant_price, 24, "restaurant_price");
       assertMoney(tx.commission_rate, 0.2, "commission_rate");
       assertMoney(tx.commission_amount, 4.8, "commission_amount");

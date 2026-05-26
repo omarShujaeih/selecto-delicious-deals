@@ -3,7 +3,7 @@ import { Clock, Heart, MapPin, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/auth.context";
 import { useFavorites } from "@/features/customer/favorites.service";
-import { discountPct, formatILS, type Offer } from "@/features/offers/offers.service";
+import { formatILS, type Offer } from "@/features/offers/offers.service";
 
 const cityLabels: Record<string, string> = {
   Ramallah: "رام الله",
@@ -40,7 +40,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
         <span className="absolute right-2 top-2 rounded-full bg-discount px-2.5 py-1 text-[10px] font-black text-white shadow-sm">
-          {discountPct(offer)}%
+          لقطة
         </span>
       </div>
 
@@ -56,12 +56,12 @@ export function OfferCard({ offer }: { offer: Offer }) {
               onClick={(event) => {
                 event.preventDefault();
                 if (!user) {
-                  toast.info("سجل دخولك لحفظ العروض المفضلة.");
+                  toast.info("سجّل دخولك واحفظ اللقطات اللي عجبتك.");
                   navigate({ to: "/auth" });
                   return;
                 }
                 toggle(offer.id);
-                toast.success(fav ? "تمت الإزالة من المفضلة" : "تم الحفظ في المفضلة");
+                toast.success(fav ? "تمت الإزالة من المفضلة" : "تم حفظ اللقطة في المفضلة");
               }}
               className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-discount"
               aria-label={fav ? "إزالة من المفضلة" : "حفظ في المفضلة"}
@@ -90,6 +90,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
 
         <div className="flex items-end justify-between gap-3 border-t border-border/50 pt-2">
           <div>
+            <p className="mb-0.5 text-[10px] font-black text-muted-foreground">السعر</p>
             <div className="flex items-baseline gap-2">
               <span className="text-[11px] font-bold text-muted-foreground line-through">
                 {formatILS(offer.originalPrice)}
@@ -98,10 +99,10 @@ export function OfferCard({ offer }: { offer: Offer }) {
                 {formatILS(offer.discountedPrice)}
               </span>
             </div>
-            <p className="mt-0.5 text-[10px] font-black text-muted-foreground">{availableQuantity} وجبات متاحة</p>
+            <p className="mt-0.5 text-[10px] font-black text-muted-foreground">باقي {availableQuantity}</p>
           </div>
           <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-black text-primary-foreground">
-            احجز
+            صيدها
           </span>
         </div>
       </div>

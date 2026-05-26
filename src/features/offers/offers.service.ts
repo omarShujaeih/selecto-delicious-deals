@@ -40,11 +40,14 @@ export function formatILS(value: number) {
 
 export const categories = [
   "All",
-  "Burgers",
-  "Pizzas",
-  "Bowls",
-  "Asian",
-  "Sushi",
+  "وجبات",
+  "برغر",
+  "بيتزا",
+  "شاورما",
+  "فلافل",
+  "حلويات",
+  "مخبوزات",
+  "عصائر",
 ] as const;
 
 export const discountPct = (o: Offer) =>

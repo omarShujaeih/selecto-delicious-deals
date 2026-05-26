@@ -11,7 +11,7 @@ type CheckoutInput = {
   deliveryAddress?: string;
   customerNote?: string;
   fulfillmentTime: string;
-  paymentMethod: "cash_on_pickup";
+  paymentMethod: "cash_on_pickup" | "visa";
 };
 
 export async function placeOrder({ data }: { data: CheckoutInput }) {

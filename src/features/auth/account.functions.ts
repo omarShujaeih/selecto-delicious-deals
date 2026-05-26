@@ -36,10 +36,10 @@ export const savePushToken = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ input, context }) => {
+  .handler(async ({ data: input, context }) => {
     const { error } = await supabaseAdmin
       .from("profiles")
-      .update({ fcm_token: input.token })
+      .update({ fcm_token: input.token } as any)
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { success: true };

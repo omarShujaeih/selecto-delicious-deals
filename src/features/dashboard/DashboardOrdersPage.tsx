@@ -71,13 +71,17 @@ function DashboardOrders() {
                           </div>
                         </div>
                         {tx.fulfillment_type === "delivery" ? (
-                          <div className="mt-1 flex flex-col text-xs">
-                            <span className="font-bold text-primary">🚗 توصيل</span>
-                            <span className="text-muted-foreground">{tx.delivery_address}</span>
+                          <div className="mt-1.5 flex flex-col items-start gap-1">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-black text-primary">
+                              🚗 طلب توصيل
+                            </span>
+                            <span className="text-[11px] font-semibold text-muted-foreground">{tx.delivery_address}</span>
                           </div>
                         ) : (
-                          <div className="mt-1 text-xs font-bold text-muted-foreground">
-                            🛍️ استلام من المطعم
+                          <div className="mt-1.5 flex items-start">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-black text-foreground">
+                              🛍️ استلام من الفرع
+                            </span>
                           </div>
                         )}
                         {tx.status === "cancelled" && tx.cancellation_reason && (

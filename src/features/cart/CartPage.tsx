@@ -19,10 +19,11 @@ function CartPage() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [customerNote, setCustomerNote] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash_on_pickup" | "visa">("cash_on_pickup");
   useCustomerGuard();
   
   async function submitOrder() {
-    if (!user) { toast.info("سجل دخولك لإتمام الحجز."); router.navigate({ to: "/auth", search: { redirect: "/cart" } }); return; }
+    if (!user) { toast.info("سجّل دخولك لإتمام الحجز."); router.navigate({ to: "/auth", search: { redirect: "/cart" } }); return; }
     
     if (fulfillmentType === "delivery" && !deliveryAddress.trim()) {
       toast.error("يرجى إدخال عنوان التوصيل.");
@@ -31,6 +32,11 @@ function CartPage() {
 
     setCheckingOut(true);
     try {
+      if (paymentMethod === "visa") {
+        toast.info("جاري معالجة الدفع عبر البطاقة...");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
       await placeOrder({ 
         data: { 
           items: items.map((item) => ({ offerId: item.offer.id, quantity: item.quantity })), 
@@ -38,15 +44,15 @@ function CartPage() {
           deliveryAddress: fulfillmentType === "delivery" ? deliveryAddress : undefined,
           customerNote: customerNote.trim() ? customerNote.trim() : undefined,
           fulfillmentTime: items.map((i) => i.offer.pickupTime).join(" | "), 
-          paymentMethod: "cash_on_pickup" 
+          paymentMethod 
         } 
       });
-      toast.success("تم حجز طلبك بنجاح. يمكنك استلامه في الوقت المحدد.");
+      toast.success("تم حجز طلبك بنجاح. روح استلمه بالوقت المحدد، وصحتين يا غالي.");
       try { await Haptics.notification({ type: NotificationType.Success }); } catch (e) { /* ignore */ }
       clearCart();
       router.navigate({ to: "/orders" });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذر إرسال الطلب.");
+      toast.error(error instanceof Error ? error.message : "صار خلل بسيط، جرّب مرة ثانية.");
     } finally {
       setCheckingOut(false);
     }
@@ -107,20 +113,20 @@ function CartPage() {
           </label>
           <textarea 
             rows={2}
-            placeholder="مثال: بدون بصل، الرجاء تجهيز الطلب عند الساعة 6:00"
+            placeholder="مثال: بدون بصل، أو جهزولي الطلب على الوقت"
             value={customerNote}
             onChange={(e) => setCustomerNote(e.target.value)}
             className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold outline-none focus:border-primary"
           />
         </section>
 
-        <PaymentMethodBox />
+        <PaymentMethodBox method={paymentMethod} setMethod={setPaymentMethod} />
         <TotalBox subtotal={subtotal} />
       </main>
 
       <div className="safe-bottom fixed inset-x-0 bottom-[64px] z-40 mx-auto max-w-[1200px] border-t border-border bg-background/95 px-5 pb-3 pt-3 backdrop-blur">
         <button type="button" onClick={submitOrder} disabled={checkingOut} className="flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-4 text-sm font-black text-primary-foreground shadow-card disabled:opacity-60">
-          <span className="flex items-center gap-2">{checkingOut ? "جاري تأكيد الطلب..." : "تأكيد الحجز"}<Check className="size-4" /></span>
+          <span className="flex items-center gap-2">{checkingOut ? "جاري تأكيد طلبك..." : "تأكيد الحجز"}<Check className="size-4" /></span>
           <span>{formatILS(subtotal)}</span>
         </button>
       </div>
@@ -129,39 +135,36 @@ function CartPage() {
     </div>
   );
 }
-function EmptyCart() { return <div className="phone-frame min-h-screen bg-background pb-20 text-foreground"><Header count={0} /><main className="grid flex-1 place-items-center px-6 py-20 text-center"><div className="max-w-xs"><div className="mx-auto grid size-20 place-items-center rounded-full bg-secondary text-primary"><ShoppingBag className="size-9" /></div><h1 className="mt-5 font-display text-2xl font-black">السلة فارغة</h1><p className="mt-2 text-sm font-semibold leading-7 text-muted-foreground">اختر وجبة من عروض اليوم وأضفها للسلة.</p><Link to="/offers" className="mt-6 inline-flex rounded-2xl bg-primary px-6 py-3 text-sm font-black text-primary-foreground shadow-card">تصفح العروض</Link></div></main><BottomNav /></div>; }
-function Header({ count }: { count: number }) { return <header className="border-b border-border bg-card px-5 py-5"><div className="flex items-center justify-between"><span className="rounded-full bg-secondary px-3 py-1 text-xs font-black text-primary">{count} وجبات</span><h1 className="font-display text-2xl font-black">السلة</h1></div></header>; }
+function EmptyCart() { return <div className="phone-frame min-h-screen bg-background pb-20 text-foreground"><Header count={0} /><main className="grid flex-1 place-items-center px-6 py-20 text-center"><div className="max-w-xs"><div className="mx-auto grid size-20 place-items-center rounded-full bg-secondary text-primary"><ShoppingBag className="size-9" /></div><h1 className="mt-5 font-display text-2xl font-black">السلة لسه فاضية</h1><p className="mt-2 text-sm font-semibold leading-7 text-muted-foreground">تصفح اللقطات، يمكن تلاقي وجبة محترمة بسعر أرحم.</p><Link to="/offers" className="mt-6 inline-flex rounded-2xl bg-primary px-6 py-3 text-sm font-black text-primary-foreground shadow-card">شوف العروض</Link></div></main><BottomNav /></div>; }
+function Header({ count }: { count: number }) { return <header className="border-b border-border bg-card px-5 py-5"><div className="flex items-center justify-between"><span className="rounded-full bg-secondary px-3 py-1 text-xs font-black text-primary">{count} وجبات</span><h1 className="font-display text-2xl font-black">تأكيد الطلب</h1></div></header>; }
 function CartRow({ item, updateQuantity, removeItem }: { item: CartItem; updateQuantity: (offerId: string, quantity: number) => void; removeItem: (offerId: string) => void }) {
   const maxQuantity = Math.min(item.offer.availableQuantity ?? MAX_CART_QUANTITY, MAX_CART_QUANTITY);
   return <article className="relative flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm" dir="rtl"><img src={item.offer.image} alt={item.offer.name} className="size-20 shrink-0 rounded-xl object-cover" /><div className="min-w-0 flex-1"><h2 className="truncate text-sm font-black">{item.offer.name}</h2><p className="mt-0.5 truncate text-xs font-bold text-muted-foreground">{item.offer.restaurant}</p><p className="mt-1 flex items-center gap-1 text-[11px] font-black text-primary"><Clock className="size-3" />{item.offer.pickupTime || "وقت الاستلام يحدده المطعم"}</p><div className="mt-3 flex items-center justify-between"><span className="font-display text-base font-black text-primary">{formatILS(item.offer.discountedPrice)}</span><div className="flex items-center gap-2 rounded-full bg-secondary px-2 py-1"><button type="button" onClick={() => updateQuantity(item.offer.id, item.quantity - 1)} className="grid size-7 place-items-center rounded-full bg-card text-primary"><Minus className="size-3.5" /></button><span className="w-5 text-center text-xs font-black">{item.quantity}</span><button type="button" onClick={() => updateQuantity(item.offer.id, item.quantity + 1)} disabled={item.quantity >= maxQuantity} className="grid size-7 place-items-center rounded-full bg-card text-primary disabled:opacity-40"><Plus className="size-3.5" /></button></div></div></div><button type="button" onClick={() => removeItem(item.offer.id)} className="absolute left-2 top-2 grid size-8 place-items-center rounded-full bg-background text-destructive"><Trash2 className="size-4" /></button></article>;
 }
 function PickupBox({ items }: { items: CartItem[] }) { return <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 animate-in fade-in slide-in-from-top-2" dir="rtl"><p className="text-sm font-black text-primary">الاستلام من المطعم</p><div className="mt-3 space-y-2">{items.map((item) => <div key={item.offer.id} className="flex justify-between gap-3 text-xs font-bold"><span className="min-w-0 truncate text-foreground">{item.offer.name}</span><span className="shrink-0 text-primary">{item.offer.pickupTime || "يحدده المطعم"}</span></div>)}</div></div>; }
-function PaymentMethodBox() { 
+function PaymentMethodBox({ method, setMethod }: { method: "cash_on_pickup" | "visa"; setMethod: (m: "cash_on_pickup" | "visa") => void }) { 
   return (
     <section className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm" dir="rtl">
       <p className="text-sm font-black text-foreground">طريقة الدفع</p>
       <div className="space-y-3">
         {/* Cash Option */}
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-primary bg-primary/5 p-3 transition-colors">
-          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[5px] border-primary bg-background" />
+        <label onClick={() => setMethod("cash_on_pickup")} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${method === "cash_on_pickup" ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
+          <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[5px] ${method === "cash_on_pickup" ? "border-primary bg-background" : "border-muted-foreground bg-transparent"}`} />
           <div>
-            <p className="text-sm font-black text-primary">الدفع عند الاستلام</p>
+            <p className={`text-sm font-black ${method === "cash_on_pickup" ? "text-primary" : "text-foreground"}`}>الدفع عند الاستلام</p>
             <p className="mt-1 text-[11px] font-bold text-muted-foreground">ادفع نقداً عند استلام طلبك من المطعم.</p>
           </div>
         </label>
         
         {/* Visa Option */}
-        <div 
-          onClick={() => toast.info("الدفع بالبطاقة سيتم تفعيله قريباً.")}
-          className="flex cursor-not-allowed items-start gap-3 rounded-xl border border-border bg-secondary/50 p-3 opacity-60 transition-colors"
-        >
-          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-muted-foreground bg-background" />
+        <div className="flex cursor-not-allowed items-start gap-3 rounded-xl border border-border bg-secondary/50 p-3 opacity-70">
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-muted-foreground bg-transparent" />
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <p className="text-sm font-black text-muted-foreground">الدفع بالبطاقة / Visa</p>
               <span className="rounded-full bg-border px-2 py-0.5 text-[9px] font-black text-muted-foreground">قريباً</span>
             </div>
-            <p className="mt-1 text-[11px] font-bold text-muted-foreground">سيتم التفعيل قريباً</p>
+            <p className="mt-1 text-[11px] font-bold text-muted-foreground">سيتم التفعيل قريباً.</p>
           </div>
         </div>
       </div>

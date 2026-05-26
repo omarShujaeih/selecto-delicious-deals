@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
-import { Leaf, MapPin, Pizza, Salad, Search, ShoppingBag, Tag, Utensils } from "lucide-react";
 import { useEffect } from "react";
 
 const emerald = "#08734F";
-const SPLASH_DURATION_MS = 8000;
+const SPLASH_DURATION_MS = 10500;
 const seconds = SPLASH_DURATION_MS / 1000;
 
 export function SplashScreen({ hold = false, onFinish }: { hold?: boolean; onFinish?: () => void }) {
@@ -15,121 +14,155 @@ export function SplashScreen({ hold = false, onFinish }: { hold?: boolean; onFin
 
   return (
     <motion.div
-      className="phone-frame min-h-screen overflow-hidden bg-[#FFFDF4] text-center"
+      className="phone-frame relative min-h-screen overflow-hidden bg-[#FFFDF4] text-center"
       dir="rtl"
       initial={{ opacity: 0 }}
       animate={hold ? { opacity: 1 } : { opacity: [0, 1, 1, 0] }}
-      transition={hold ? { duration: 0.5 } : { duration: seconds, times: [0, 0.1, 0.9, 1], ease: "easeInOut" }}
+      transition={hold ? { duration: 0.45 } : { duration: seconds, times: [0, 0.08, 0.92, 1], ease: "easeInOut" }}
     >
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15, duration: 0.65, ease: "easeOut" }}
-      >
-        <div className="absolute -left-16 -top-14 size-36 rounded-full bg-[#DDEAC8]/85" />
-        <div className="absolute -bottom-20 -right-20 size-44 rounded-full bg-[#DDEAC8]/80" />
-        <div className="absolute left-1/2 top-1/4 size-52 -translate-x-1/2 rounded-full bg-[#EAF3DA]/55 blur-3xl" />
-      </motion.div>
+      <SoftBackground />
+      <FloatingWords />
 
-      <DecorativeIcons />
-
-      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-8 pb-14 pt-12">
-        <div className="flex w-full flex-col items-center">
-          <motion.div
-            className="relative"
-            initial={{ opacity: 0, scale: 0.8, y: 10 }}
-            animate={{ opacity: 1, scale: [0.8, 1.05, 1], y: 0 }}
-            transition={{ delay: 1.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="absolute left-1/2 top-1/2 size-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#DDEAC8]/60 blur-2xl" />
-            <SelectoMark />
-          </motion.div>
-
-          <motion.h1
-            className="mt-5 font-display text-5xl font-black leading-none text-[#08734F]"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.4, duration: 0.7, ease: "easeOut" }}
-          >
-            Selecto
-          </motion.h1>
-
-          <motion.div
-            className="relative mt-4"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 3.1, duration: 0.7, ease: "easeOut" }}
-          >
-            <p className="text-lg font-black text-[#08734F]">وجبات قريبة. أسعار أوفر.</p>
-            <svg
-              className="absolute -bottom-3 left-1/2 h-4 w-40 -translate-x-1/2"
-              viewBox="0 0 160 16"
-              aria-hidden="true"
-              style={{ transform: "translateX(-50%) rotateY(180deg)" }}
-            >
-              <motion.path
-                d="M10 8 Q 80 16 150 8"
-                fill="none"
-                stroke={emerald}
-                strokeLinecap="round"
-                strokeWidth="2.5"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.86 }}
-                transition={{ delay: 3.8, duration: 0.7, ease: "easeOut" }}
-              />
-            </svg>
-          </motion.div>
-        </div>
-
-        <div className="mt-10 flex gap-3">
-          {[
-            { icon: Search, text: "استكشف" },
-            { icon: ShoppingBag, text: "احجز" },
-            { icon: MapPin, text: "استلم" },
-          ].map((step, index) => (
-            <motion.div
-              key={step.text}
-              className="flex items-center gap-1.5 rounded-full border border-[#08734F]/20 bg-[#FFFDF4] px-3 py-1.5 shadow-sm"
-              initial={{ opacity: 0, y: 10, scale: 0.92 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 4.5 + index * 0.25, duration: 0.5, ease: "easeOut" }}
-            >
-              <step.icon className="size-3.5 text-[#08734F]" strokeWidth={2.5} />
-              <span className="text-xs font-bold text-[#08734F]">{step.text}</span>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.p
-          className="mt-6 text-sm font-semibold text-[#08734F]/80"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 5.3, duration: 0.9, ease: "easeOut" }}
+      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-16 pt-12">
+        <motion.div
+          className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#08734F]/15 bg-white/60 px-4 py-2 text-xs font-black text-[#08734F] shadow-sm backdrop-blur"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65, duration: 0.55, ease: "easeOut" }}
         >
-          اكتشف، احجز، واستلم في الوقت المحدد
-        </motion.p>
+          <span className="size-2 rounded-full bg-[#08734F]" />
+          رادار اللقطة شغّال
+        </motion.div>
 
         <motion.div
-          className="absolute bottom-16 flex flex-col items-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 6.2, duration: 0.65, ease: "easeOut" }}
+          className="relative"
+          initial={{ opacity: 0, scale: 0.78, y: 12 }}
+          animate={{ opacity: 1, scale: [0.78, 1.06, 1], y: 0 }}
+          transition={{ delay: 1.35, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <RadarRings />
+          <SelectoMark />
+        </motion.div>
+
+        <motion.h1
+          className="mt-6 font-display text-5xl font-black leading-none text-[#08734F]"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.25, duration: 0.65, ease: "easeOut" }}
+        >
+          Selecto
+        </motion.h1>
+
+        <motion.div
+          className="mt-4 max-w-xs"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 3.0, duration: 0.65, ease: "easeOut" }}
+        >
+          <p className="font-display text-2xl font-black leading-tight text-[#102033]">
+            أكل بشبع بسعر ما بوجع
+          </p>
+          <motion.div
+            className="mx-auto mt-3 h-1 w-28 rounded-full bg-[#08734F]"
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ delay: 3.65, duration: 0.55, ease: "easeOut" }}
+            style={{ transformOrigin: "right" }}
+          />
+          <p className="mt-4 text-sm font-bold leading-7 text-[#08734F]/75">
+            آخر الشهر؟ ولا يهمك… بنفتشلك على السعر الأرحم.
+          </p>
+        </motion.div>
+
+        <motion.div
+          className="mt-8 rounded-2xl border border-[#08734F]/12 bg-[#08734F] px-5 py-3 text-white shadow-[0_18px_38px_rgba(8,115,79,0.2)]"
+          initial={{ opacity: 0, y: 14, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 4.65, duration: 0.65, ease: "easeOut" }}
+        >
+          <p className="text-[11px] font-black text-white/70">رسالة من الجيبة</p>
+          <p className="mt-0.5 text-sm font-black">الخصم علينا… والدفع أكيد عليك يا غالي</p>
+        </motion.div>
+
+        <motion.div
+          className="absolute bottom-14 flex flex-col items-center"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 7.25, duration: 0.6, ease: "easeOut" }}
         >
           <div className="flex gap-1.5">
             {[0, 1, 2].map((i) => (
               <motion.span
                 key={i}
                 className="size-2 rounded-full bg-[#08734F]"
-                animate={{ opacity: [0.45, 1, 0.45], scale: [1, 1.45, 1] }}
+                animate={{ opacity: [0.35, 1, 0.35], scale: [1, 1.45, 1] }}
                 transition={{ duration: 1, repeat: Infinity, delay: i * 0.18, ease: "easeInOut" }}
               />
             ))}
           </div>
-          <p className="mt-4 text-xs font-bold text-[#08734F]">نحضر لك أفضل العروض...</p>
+          <p className="mt-4 text-xs font-black text-[#08734F]">ثواني ونفتحلك اللقطات...</p>
         </motion.div>
       </main>
     </motion.div>
+  );
+}
+
+function SoftBackground() {
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      <div className="absolute -right-20 top-8 size-56 rounded-full bg-[#DDEAC8]/80 blur-3xl" />
+      <div className="absolute -left-24 bottom-12 size-64 rounded-full bg-[#DDEAC8]/65 blur-3xl" />
+      <div className="absolute left-1/2 top-1/2 size-80 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#08734F]/5" />
+      <div className="absolute left-1/2 top-1/2 size-56 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#08734F]/7" />
+      <div className="absolute right-8 top-9 grid grid-cols-4 gap-2 opacity-35">
+        {Array.from({ length: 16 }).map((_, i) => (
+          <span key={i} className="size-1 rounded-full bg-[#08734F]/35" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FloatingWords() {
+  const words = [
+    { text: "لقطة اليوم", className: "right-[7%] top-[16%] rotate-3" },
+    { text: "على قد الجيبة", className: "left-[7%] top-[21%] -rotate-6" },
+    { text: "قبل ما تطير", className: "right-[8%] top-[36%] -rotate-3" },
+    { text: "سكنات ودوام", className: "left-[8%] bottom-[27%] rotate-6" },
+    { text: "صيدها", className: "right-[16%] bottom-[19%] rotate-3" },
+  ];
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+      {words.map((item, index) => (
+        <motion.span
+          key={item.text}
+          className={`absolute rounded-full border border-[#08734F]/10 bg-white/55 px-3 py-1.5 text-[11px] font-black text-[#08734F]/42 shadow-sm backdrop-blur ${item.className}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.95 + index * 0.16, duration: 0.55, ease: "easeOut" }}
+        >
+          {item.text}
+        </motion.span>
+      ))}
+    </div>
+  );
+}
+
+function RadarRings() {
+  return (
+    <div className="absolute left-1/2 top-1/2 -z-10 grid size-48 -translate-x-1/2 -translate-y-1/2 place-items-center">
+      {[0, 1, 2].map((ring) => (
+        <motion.span
+          key={ring}
+          className="absolute rounded-full border border-[#08734F]/15"
+          initial={{ width: 86, height: 86, opacity: 0 }}
+          animate={{ width: [86, 160], height: [86, 160], opacity: [0, 0.42, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, delay: ring * 0.42, ease: "easeOut" }}
+        />
+      ))}
+      <div className="size-36 rounded-full bg-[#DDEAC8]/55 blur-2xl" />
+    </div>
   );
 }
 
@@ -152,38 +185,5 @@ function SelectoMark() {
       />
       <path d="M82 88c8-8 17-12 28-17" stroke="#FFFDF4" strokeLinecap="round" strokeWidth="3" />
     </svg>
-  );
-}
-
-function DecorativeIcons() {
-  const iconClass = "absolute text-[#C9DFA5]";
-
-  return (
-    <motion.div
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
-      aria-hidden="true"
-    >
-      <Utensils className={`${iconClass} left-[13%] top-[11%] size-14 -rotate-12 opacity-55`} strokeWidth={1.25} />
-      <Tag className={`${iconClass} right-[15%] top-[14%] size-12 rotate-3 opacity-55`} strokeWidth={1.25} />
-      <Salad className={`${iconClass} bottom-[11%] left-[34%] size-14 rotate-12 opacity-45`} strokeWidth={1.25} />
-      <Pizza className={`${iconClass} right-[9%] top-[28%] size-16 rotate-12 opacity-55`} strokeWidth={1.25} />
-      <MapPin className={`${iconClass} bottom-[30%] left-[10%] size-12 -rotate-12 opacity-45`} strokeWidth={1.25} />
-      <Leaf className={`${iconClass} left-[48%] top-[14%] size-5 -rotate-12 opacity-65`} strokeWidth={1.25} />
-      <Leaf className={`${iconClass} right-[31%] top-[31%] size-5 rotate-12 opacity-55`} strokeWidth={1.25} />
-      <Leaf className={`${iconClass} bottom-[17%] left-[14%] size-5 -rotate-12 opacity-55`} strokeWidth={1.25} />
-      <div className="absolute right-8 top-8 grid grid-cols-4 gap-2 opacity-45">
-        {Array.from({ length: 16 }).map((_, i) => (
-          <span key={i} className="size-1 rounded-full bg-[#C9DFA5]" />
-        ))}
-      </div>
-      <div className="absolute bottom-10 left-4 grid grid-cols-3 gap-2 opacity-35">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <span key={i} className="size-1 rounded-full bg-[#C9DFA5]" />
-        ))}
-      </div>
-    </motion.div>
   );
 }
