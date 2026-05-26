@@ -106,17 +106,17 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({
     id: z.string().uuid(),
-    status: z.string().min(1),
+    status: z.enum(["confirmed", "ready_for_pickup", "completed", "cancelled"]),
     cancellation_reason: z.string().optional(),
   }).parse(input))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const restaurantId = await requireRestaurant(sb, context.userId);
 
-    // Verify ownership
+    // Verify ownership and get current status
     const { data: existing, error: fetchError } = await sb
       .from("transactions")
-      .select("restaurant_id")
+      .select("restaurant_id, status")
       .eq("id", data.id)
       .limit(1);
 
@@ -124,18 +124,37 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       throw new Error("Unauthorized to edit this transaction");
     }
 
+    const currentStatus = existing[0].status || "confirmed";
+    const newStatus = data.status;
+
+    // Strict status transition validation
+    const validTransitions: Record<string, string[]> = {
+      "confirmed": ["ready_for_pickup", "cancelled"],
+      "ready_for_pickup": ["completed", "cancelled"],
+      "completed": [],
+      "cancelled": [],
+    };
+
+    if (!validTransitions[currentStatus]?.includes(newStatus) && currentStatus !== newStatus) {
+      throw new Error(`Invalid status transition from ${currentStatus} to ${newStatus}`);
+    }
+
+    if (newStatus === "cancelled" && (!data.cancellation_reason || data.cancellation_reason.trim() === "")) {
+      throw new Error("Cancellation reason is required");
+    }
+
     const { error } = await sb
       .from("transactions")
       .update({ 
-        status: data.status,
-        ...(data.cancellation_reason ? { cancellation_reason: data.cancellation_reason } : {})
+        status: newStatus,
+        ...(newStatus === "cancelled" ? { cancellation_reason: data.cancellation_reason } : {})
       })
       .eq("id", data.id);
 
     if (error) throw new Error(error.message);
 
     // Notify customer in the background
-    notifyCustomerOfOrderStatus({ data: { transactionId: data.id, status: data.status } }).catch(() => {});
+    notifyCustomerOfOrderStatus({ data: { transactionId: data.id, status: newStatus } }).catch(() => {});
 
     return { success: true };
   });
