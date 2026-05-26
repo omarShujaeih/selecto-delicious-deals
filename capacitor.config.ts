@@ -26,8 +26,8 @@ const config: CapacitorConfig = {
 
     // 3. FOR STAGING APK (Shareable with testers):
     // Replace with your actual Cloudflare Pages / Staging URL
-    url: 'https://YOUR_STAGING_DOMAIN_HERE.com',
-    cleartext: false
+    url: 'https://selecto-delicious-deals.omarshujaeih.workers.dev',
+    cleartext: false,
 
     // 4. FOR PRODUCTION PLAY STORE RELEASE:
     // url: 'https://selecto.app',
